@@ -1,14 +1,12 @@
 package bi.lan.lan.di
 
-import bi.lan.lan.data.repository.*
-import bi.lan.lan.domain.repository.*
+import bi.lan.lan.data.repository.AgentLightningRepository
+import bi.lan.lan.data.repository.CustomerLightningRepository
+import bi.lan.lan.domain.repository.LightningRepository
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 val repositoryModule = module {
-    single<AuthRepository> { AuthRepositoryImpl(get()) }
-    single<WalletRepository> { WalletRepositoryImpl(get()) }
-    single<AgentRepository> { AgentRepositoryImpl(get()) }
-    single<DepositRepository> { DepositRepositoryImpl(get()) }
-    single<WithdrawRepository> { WithdrawRepositoryImpl(get()) }
-    single<TransactionRepository> { TransactionRepositoryImpl(get()) }
+    single<LightningRepository>(named("customer")) { CustomerLightningRepository(get()) }
+    single<LightningRepository>(named("agent")) { AgentLightningRepository(get()) }
 }
