@@ -6,6 +6,13 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Dns
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -297,6 +304,165 @@ fun LANTextField(
                 modifier = Modifier.padding(start = 16.dp, top = 4.dp)
             )
         }
+    }
+}
+
+// ─── Custom Bottom Bar ────────────────────────────────────────────────────────
+
+@Composable
+fun LANBottomBar(
+    selectedIndex: Int,
+    onItemSelected: (Int) -> Unit
+) {
+    Surface(
+        color = SurfaceWhite,
+        shadowElevation = 20.dp,
+        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier
+                .windowInsetsPadding(WindowInsets.navigationBars)
+                .fillMaxWidth()
+                .height(80.dp)
+                .padding(horizontal = 12.dp),
+            horizontalArrangement = Arrangement.SpaceAround,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            LANBottomNavItem(
+                icon = Icons.Default.Home,
+                label = "Home",
+                isSelected = selectedIndex == 0,
+                onClick = { onItemSelected(0) }
+            )
+            LANBottomNavItem(
+                icon = Icons.Default.History,
+                label = "Activity",
+                isSelected = selectedIndex == 1,
+                onClick = { onItemSelected(1) }
+            )
+            LANBottomNavItem(
+                icon = Icons.Default.Dns,
+                label = "Node",
+                isSelected = selectedIndex == 2,
+                onClick = { onItemSelected(2) }
+            )
+        }
+    }
+}
+
+/**
+ * A "Pro" Bottom App Bar with 3 items: Home, Activity, Profile.
+ */
+@Composable
+fun LANBottomAppBar(
+    selectedIndex: Int,
+    onItemSelected: (Int) -> Unit,
+    onFabClick: () -> Unit = {} // Kept for compatibility but not used in 3-item layout
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        color = SurfaceWhite,
+        shadowElevation = 8.dp,
+        shape = RoundedCornerShape(24.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .windowInsetsPadding(WindowInsets.navigationBars)
+                .fillMaxWidth()
+                .height(64.dp)
+                .padding(horizontal = 8.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            LANBottomNavItemSmall(Icons.Default.Home, "Home", selectedIndex == 0) { onItemSelected(0) }
+            LANBottomNavItemSmall(Icons.Default.History, "Activity", selectedIndex == 1) { onItemSelected(1) }
+            LANBottomNavItemSmall(Icons.Default.Dns, "Node", selectedIndex == 2) { onItemSelected(2) }
+        }
+    }
+}
+
+@Composable
+private fun LANBottomNavItemSmall(
+    icon: ImageVector,
+    label: String,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    val color = if (isSelected) PrimaryGreen else TextSecondary
+    val bgColor = if (isSelected) PrimaryGreen.copy(alpha = 0.1f) else Color.Transparent
+    
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(16.dp))
+            .background(bgColor)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                icon, 
+                contentDescription = label, 
+                tint = color, 
+                modifier = Modifier.size(24.dp)
+            )
+            if (isSelected) {
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    label, 
+                    style = MaterialTheme.typography.labelMedium, 
+                    color = color, 
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun LANBottomNavItem(
+    icon: ImageVector,
+    label: String,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    val color = if (isSelected) PrimaryGreen else TextSecondary
+    val bgColor = if (isSelected) PrimaryGreenLight.copy(alpha = 0.4f) else Color.Transparent
+    
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .clip(RoundedCornerShape(16.dp))
+            .clickable(onClick = onClick)
+            .padding(vertical = 8.dp, horizontal = 16.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(12.dp))
+                .background(bgColor)
+                .padding(horizontal = 16.dp, vertical = 4.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                tint = color,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+        Spacer(Modifier.height(4.dp))
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = color,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+        )
     }
 }
 

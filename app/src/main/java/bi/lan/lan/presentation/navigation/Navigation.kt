@@ -56,11 +56,15 @@ fun AppNavigation() {
         }
         composable("customer_transactions") {
             CustomerTransactionsScreen(
+                onHome = { navController.navigate("customer_home") { popUpTo("customer_home") { inclusive = false } } },
+                onNodeInfo = { navController.navigate("customer_node_info") { launchSingleTop = true } },
                 onBack = { navController.popBackStack() }
             )
         }
         composable("customer_node_info") {
             CustomerNodeInfoScreen(
+                onHome = { navController.navigate("customer_home") { popUpTo("customer_home") { inclusive = false } } },
+                onTransactions = { navController.navigate("customer_transactions") { launchSingleTop = true } },
                 onBack = { navController.popBackStack() }
             )
         }
@@ -87,12 +91,16 @@ fun AppNavigation() {
         }
         composable("agent_transactions") {
             AgentTransactionsScreen(
+                onHome = { navController.navigate("agent_home") { popUpTo("agent_home") { inclusive = false } } },
+                onNodeInfo = { navController.navigate("agent_node_info") { launchSingleTop = true } },
                 onBack = { navController.popBackStack() }
             )
         }
         composable("agent_node_info") {
             // Reuses Customer's NodeInfoViewModel but gets agent NodeInfoViewModel qualifier from Koin (handled inside AgentNodeInfoScreen)
             AgentNodeInfoScreen(
+                onHome = { navController.navigate("agent_home") { popUpTo("agent_home") { inclusive = false } } },
+                onTransactions = { navController.navigate("agent_transactions") { launchSingleTop = true } },
                 onBack = { navController.popBackStack() }
             )
         }
