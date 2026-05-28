@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -28,7 +29,7 @@ import bi.lan.lan.ui.theme.*
 // ─── Balance Card ─────────────────────────────────────────────────────────────
 
 @Composable
-fun BalanceCard(balance: BalanceResponse?, accentColor: Color = BrandGreen) {
+fun BalanceCard(balance: BalanceResponse?, accentColor: Color = PrimaryGreen) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
@@ -83,7 +84,7 @@ fun HealthStatusCard(health: HealthResponse?) {
             val isHealthy = health?.status == "healthy"
             Box(
                 modifier = Modifier.size(12.dp).clip(CircleShape)
-                    .background(if (isHealthy) StatusCompleted else StatusFailed)
+                    .background(if (isHealthy) StatusSuccess else StatusError)
             )
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
@@ -125,7 +126,7 @@ fun QuickActionButton(icon: ImageVector, label: String, tint: Color, onClick: ()
 
 @Composable
 fun StatusBadge(text: String, isSuccess: Boolean) {
-    val color = if (isSuccess) StatusCompleted else StatusFailed
+    val color = if (isSuccess) StatusSuccess else StatusError
     Box(
         modifier = Modifier.clip(RoundedCornerShape(20.dp)).background(color.copy(alpha = 0.1f)).padding(horizontal = 10.dp, vertical = 4.dp)
     ) {
@@ -136,7 +137,7 @@ fun StatusBadge(text: String, isSuccess: Boolean) {
 // ─── Loading Button ───────────────────────────────────────────────────────────
 
 @Composable
-fun LoadingButton(text: String, isLoading: Boolean, accentColor: Color = BrandGreen, modifier: Modifier = Modifier, onClick: () -> Unit) {
+fun LoadingButton(text: String, isLoading: Boolean, accentColor: Color = PrimaryGreen, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Button(
         onClick = onClick,
         modifier = modifier.fillMaxWidth().height(56.dp),
@@ -153,7 +154,7 @@ fun LoadingButton(text: String, isLoading: Boolean, accentColor: Color = BrandGr
 // ─── Copyable Text Card ──────────────────────────────────────────────────────
 
 @Composable
-fun CopyableTextCard(label: String, value: String, accentColor: Color = BrandGreen) {
+fun CopyableTextCard(label: String, value: String, accentColor: Color = PrimaryGreen) {
     val clipboard = LocalClipboardManager.current
     Card(
         modifier = Modifier.fillMaxWidth().clickable { clipboard.setText(AnnotatedString(value)) },
@@ -244,12 +245,67 @@ fun SectionHeader(title: String) {
     Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = TextPrimary)
 }
 
+// ─── Custom Text Field ────────────────────────────────────────────────────────
+
+@Composable
+fun LANTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    modifier: Modifier = Modifier,
+    placeholder: String = "",
+    leadingIcon: ImageVector? = null,
+    trailingIcon: @Composable (() -> Unit)? = null,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    singleLine: Boolean = true,
+    minLines: Int = 1,
+    isError: Boolean = false,
+    errorMessage: String? = null
+) {
+    Column(modifier = modifier) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            label = { Text(label) },
+            placeholder = if (placeholder.isNotEmpty()) { { Text(placeholder, style = MaterialTheme.typography.bodyMedium, color = TextHint) } } else null,
+            leadingIcon = leadingIcon?.let { { Icon(it, contentDescription = null, tint = if (isError) StatusError else PrimaryGreen) } },
+            trailingIcon = trailingIcon,
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            keyboardOptions = keyboardOptions,
+            singleLine = singleLine,
+            minLines = minLines,
+            isError = isError,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = PrimaryGreen,
+                unfocusedBorderColor = OutlineColor.copy(alpha = 0.5f),
+                focusedContainerColor = SurfaceWhite,
+                unfocusedContainerColor = SurfaceWhite,
+                focusedLabelColor = PrimaryGreen,
+                unfocusedLabelColor = TextSecondary,
+                cursorColor = PrimaryGreen,
+                errorBorderColor = StatusError,
+                errorLabelColor = StatusError
+            ),
+            textStyle = MaterialTheme.typography.bodyLarge.copy(color = TextPrimary)
+        )
+        if (isError && errorMessage != null) {
+            Text(
+                text = errorMessage,
+                color = StatusError,
+                style = MaterialTheme.typography.labelSmall,
+                modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+            )
+        }
+    }
+}
+
 // ─── Lightning Logo ───────────────────────────────────────────────────────────
 
 @Composable
 fun LightningLogo(size: Int = 56) {
     Box(
-        modifier = Modifier.size(size.dp).clip(RoundedCornerShape((size * 0.25).dp)).background(BrandGreen),
+        modifier = Modifier.size(size.dp).clip(RoundedCornerShape((size * 0.25).dp)).background(PrimaryGreen),
         contentAlignment = Alignment.Center
     ) {
         Text("⚡", fontSize = (size * 0.45).sp)

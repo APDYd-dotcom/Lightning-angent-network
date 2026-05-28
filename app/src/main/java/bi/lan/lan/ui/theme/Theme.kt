@@ -12,44 +12,44 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val LightColorScheme = lightColorScheme(
-    primary = BrandGreen,
+    primary = PrimaryGreen,
     onPrimary = SurfaceWhite,
-    primaryContainer = BrandGreenLight,
-    onPrimaryContainer = BrandGreenDark,
-    secondary = BrandBlue,
+    primaryContainer = PrimaryGreenLight,
+    onPrimaryContainer = PrimaryGreenDark,
+    secondary = PrimaryGreen, // Use green for secondary as requested
     onSecondary = SurfaceWhite,
-    secondaryContainer = BrandBlueLight,
-    onSecondaryContainer = BrandBlueDark,
+    secondaryContainer = PrimaryGreenLight,
+    onSecondaryContainer = PrimaryGreenDark,
     background = BackgroundLight,
     onBackground = TextPrimary,
     surface = SurfaceWhite,
     onSurface = TextPrimary,
     surfaceVariant = SurfaceCard,
     onSurfaceVariant = TextSecondary,
-    error = StatusFailed,
+    error = StatusError,
     onError = SurfaceWhite,
-    outline = InputBorder,
+    outline = OutlineColor,
     outlineVariant = DividerColor
 )
 
 private val DarkColorScheme = darkColorScheme(
-    primary = BrandGreen,
+    primary = PrimaryGreen,
     onPrimary = DarkBackground,
-    primaryContainer = BrandGreenDark,
-    onPrimaryContainer = BrandGreenLight,
-    secondary = BrandBlue,
+    primaryContainer = PrimaryGreenDark,
+    onPrimaryContainer = PrimaryGreenLight,
+    secondary = PrimaryGreen,
     onSecondary = DarkBackground,
-    secondaryContainer = BrandBlueDark,
-    onSecondaryContainer = BrandBlueLight,
+    secondaryContainer = PrimaryGreenDark,
+    onSecondaryContainer = PrimaryGreenLight,
     background = DarkBackground,
-    onBackground = SurfaceWhite,
+    onBackground = DarkTextPrimary,
     surface = DarkSurface,
-    onSurface = SurfaceWhite,
+    onSurface = DarkTextPrimary,
     surfaceVariant = DarkSurfaceCard,
-    onSurfaceVariant = TextHint,
-    error = StatusFailed,
+    onSurfaceVariant = DarkTextSecondary,
+    error = StatusError,
     onError = SurfaceWhite,
-    outline = DarkSurfaceCard,
+    outline = DarkOutline,
     outlineVariant = DarkSurface
 )
 
@@ -63,8 +63,14 @@ fun LANTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            WindowCompat.setDecorFitsSystemWindows(window, false)
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+            window.statusBarColor = colorScheme.primary.toArgb() // Make status bar primary green
+            window.navigationBarColor = colorScheme.background.toArgb()
+            
+            val isLight = !darkTheme
+            WindowCompat.getInsetsController(window, view).apply {
+                isAppearanceLightStatusBars = false // Status bar is primary color (green), text should be light
+                isAppearanceLightNavigationBars = isLight
+            }
         }
     }
 
