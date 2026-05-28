@@ -303,9 +303,9 @@ fun LANTextField(
 // ─── Lightning Logo ───────────────────────────────────────────────────────────
 
 @Composable
-fun LightningLogo(size: Int = 56) {
+fun LightningLogo(size: Int = 56, backgroundColor: Color = PrimaryGreen) {
     Box(
-        modifier = Modifier.size(size.dp).clip(RoundedCornerShape((size * 0.25).dp)).background(PrimaryGreen),
+        modifier = Modifier.size(size.dp).clip(RoundedCornerShape((size * 0.25).dp)).background(backgroundColor),
         contentAlignment = Alignment.Center
     ) {
         Text("⚡", fontSize = (size * 0.45).sp)
