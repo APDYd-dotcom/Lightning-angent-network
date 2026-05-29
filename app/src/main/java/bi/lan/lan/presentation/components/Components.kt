@@ -27,6 +27,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.animation.core.*
+import androidx.compose.ui.composed
+import androidx.compose.ui.geometry.Offset
 import bi.lan.lan.data.model.BalanceResponse
 import bi.lan.lan.data.model.HealthResponse
 import bi.lan.lan.data.model.InvoiceResponse
@@ -477,3 +480,135 @@ fun LightningLogo(size: Int = 56, backgroundColor: Color = PrimaryGreen) {
         Text("⚡", fontSize = (size * 0.45).sp)
     }
 }
+
+// ─── Skeleton Loading (Shimmer Screens) ───────────────────────────────────────
+
+fun Modifier.shimmerLoadingAnimation(): Modifier = composed {
+    val transition = rememberInfiniteTransition(label = "shimmer")
+    val translateAnim = transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1000f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1200, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "shimmer_translate"
+    )
+
+    val shimmerColors = listOf(
+        Color.LightGray.copy(alpha = 0.5f),
+        Color.LightGray.copy(alpha = 0.2f),
+        Color.LightGray.copy(alpha = 0.5f),
+    )
+
+    val brush = Brush.linearGradient(
+        colors = shimmerColors,
+        start = Offset.Zero,
+        end = Offset(x = translateAnim.value, y = translateAnim.value)
+    )
+
+    background(brush = brush)
+}
+
+@Composable
+fun ShimmerItem(modifier: Modifier = Modifier, shape: RoundedCornerShape = RoundedCornerShape(8.dp)) {
+    Box(
+        modifier = modifier
+            .clip(shape)
+            .shimmerLoadingAnimation()
+    )
+}
+
+@Composable
+fun BalanceCardSkeleton() {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
+        elevation = CardDefaults.cardElevation(1.dp)
+    ) {
+        Column(modifier = Modifier.padding(24.dp)) {
+            ShimmerItem(Modifier.width(100.dp).height(14.dp))
+            Spacer(Modifier.height(8.dp))
+            ShimmerItem(Modifier.width(180.dp).height(32.dp))
+            Spacer(Modifier.height(16.dp))
+            HorizontalDivider(color = DividerColor.copy(alpha = 0.5f))
+            Spacer(Modifier.height(16.dp))
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Column {
+                    ShimmerItem(Modifier.width(60.dp).height(12.dp))
+                    Spacer(Modifier.height(4.dp))
+                    ShimmerItem(Modifier.width(80.dp).height(16.dp))
+                }
+                Column(horizontalAlignment = Alignment.End) {
+                    ShimmerItem(Modifier.width(60.dp).height(12.dp))
+                    Spacer(Modifier.height(4.dp))
+                    ShimmerItem(Modifier.width(80.dp).height(16.dp))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun InvoiceCardSkeleton() {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
+        elevation = CardDefaults.cardElevation(1.dp)
+    ) {
+        Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                ShimmerItem(Modifier.width(120.dp).height(18.dp))
+                Spacer(Modifier.height(6.dp))
+                ShimmerItem(Modifier.width(180.dp).height(14.dp))
+            }
+            ShimmerItem(Modifier.width(70.dp).height(24.dp), RoundedCornerShape(12.dp))
+        }
+    }
+}
+
+@Composable
+fun PaymentCardSkeleton() = InvoiceCardSkeleton()
+
+@Composable
+fun HealthStatusCardSkeleton() {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
+        elevation = CardDefaults.cardElevation(1.dp)
+    ) {
+        Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            ShimmerItem(Modifier.size(12.dp), RoundedCornerShape(6.dp))
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                ShimmerItem(Modifier.width(100.dp).height(16.dp))
+                Spacer(Modifier.height(6.dp))
+                ShimmerItem(Modifier.width(160.dp).height(12.dp))
+            }
+            ShimmerItem(Modifier.width(60.dp).height(24.dp), RoundedCornerShape(12.dp))
+        }
+    }
+}
+
+@Composable
+fun NodeInfoSkeleton() {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
+        elevation = CardDefaults.cardElevation(1.dp)
+    ) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            repeat(6) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    ShimmerItem(Modifier.width(100.dp).height(16.dp))
+                    ShimmerItem(Modifier.width(140.dp).height(16.dp))
+                }
+            }
+        }
+    }
+}
+
