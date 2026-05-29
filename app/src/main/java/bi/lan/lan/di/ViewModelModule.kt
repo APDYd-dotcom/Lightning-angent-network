@@ -12,11 +12,12 @@ val viewModelModule = module {
     viewModel { CustomerInvoiceViewModel(get(named("customer"))) }
     viewModel { CustomerPaymentViewModel(get(named("customer"))) }
     viewModel { CustomerTransactionsViewModel(get(named("customer"))) }
-    viewModel { NodeInfoViewModel(get(named("customer"))) }
+    viewModel(named("customer")) { NodeInfoViewModel(get(named("customer"))) }
 
     // Agent ViewModels (use named("agent") for agent repo)
     viewModel { AgentHomeViewModel(get(named("agent"))) }
     viewModel { AgentDepositViewModel(get(named("agent"))) }
     viewModel { AgentWithdrawalViewModel(get(named("agent")), get(named("customer"))) }
     viewModel { AgentTransactionsViewModel(get(named("agent"))) }
+    viewModel(named("agent")) { NodeInfoViewModel(get(named("agent"))) }
 }
