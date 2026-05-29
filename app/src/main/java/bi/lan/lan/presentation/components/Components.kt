@@ -342,8 +342,8 @@ fun LANBottomBar(
                 onClick = { onItemSelected(1) }
             )
             LANBottomNavItem(
-                icon = Icons.Default.Dns,
-                label = "Node",
+                icon = Icons.Default.Person,
+                label = "Profile",
                 isSelected = selectedIndex == 2,
                 onClick = { onItemSelected(2) }
             )
@@ -379,7 +379,7 @@ fun LANBottomAppBar(
         ) {
             LANBottomNavItemSmall(Icons.Default.Home, "Home", selectedIndex == 0) { onItemSelected(0) }
             LANBottomNavItemSmall(Icons.Default.History, "Activity", selectedIndex == 1) { onItemSelected(1) }
-            LANBottomNavItemSmall(Icons.Default.Dns, "Node", selectedIndex == 2) { onItemSelected(2) }
+            LANBottomNavItemSmall(Icons.Default.Person, "Profile", selectedIndex == 2) { onItemSelected(2) }
         }
     }
 }
