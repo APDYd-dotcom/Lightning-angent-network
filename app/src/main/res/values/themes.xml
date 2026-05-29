@@ -3,9 +3,9 @@
 
     <style name="Theme.LAN" parent="android:Theme.Material.Light.NoActionBar" />
 
-    <style name="Theme.PowerOfTheWord.Splash" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/black</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/pwt_splash_logo</item>
-        <item name="postSplashScreenTheme">@style/Theme.PowerOfTheWord</item>
-    </style>
+<!--    <style name="Theme.PowerOfTheWord.Splash" parent="Theme.SplashScreen">-->
+<!--        <item name="windowSplashScreenBackground">@color/black</item>-->
+<!--        <item name="windowSplashScreenAnimatedIcon">@drawable/pwt_splash_logo</item>-->
+<!--        <item name="postSplashScreenTheme">@style/Theme.PowerOfTheWord</item>-->
+<!--    </style>-->
 </resources>

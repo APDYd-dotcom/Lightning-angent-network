@@ -10,7 +10,7 @@ val viewModelModule = module {
     // Customer ViewModels
     viewModel { CustomerHomeViewModel(get(named("customer"))) }
     viewModel { CustomerInvoiceViewModel(get(named("customer"))) }
-    viewModel { CustomerPaymentViewModel(get(named("customer"))) }
+    viewModel { CustomerPaymentViewModel(get(named("customer")), get(named("agent"))) }
     viewModel { CustomerTransactionsViewModel(get(named("customer"))) }
     viewModel(named("customer")) { NodeInfoViewModel(get(named("customer"))) }
 
