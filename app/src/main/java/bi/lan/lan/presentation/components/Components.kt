@@ -99,7 +99,7 @@ fun HealthStatusCard(health: HealthResponse?) {
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
                 Text(
-                    if (isHealthy) "Node Online" else "Node Offline",
+                    if (isHealthy) "Online" else "Offline",
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
                     color = TextPrimary
@@ -108,7 +108,7 @@ fun HealthStatusCard(health: HealthResponse?) {
                     Text("${health.nodeAlias} • Block ${health.blockHeight}", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
                 }
             }
-            StatusBadge(if (isHealthy) "Synced" else "Error", isHealthy)
+            StatusBadge(if (isHealthy) "Synced" else "Not Synced", isHealthy)
         }
     }
 }

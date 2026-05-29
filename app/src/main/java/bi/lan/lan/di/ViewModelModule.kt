@@ -17,6 +17,6 @@ val viewModelModule = module {
     // Agent ViewModels (use named("agent") for agent repo)
     viewModel { AgentHomeViewModel(get(named("agent"))) }
     viewModel { AgentDepositViewModel(get(named("agent"))) }
-    viewModel { AgentWithdrawalViewModel(get(named("agent"))) }
+    viewModel { AgentWithdrawalViewModel(get(named("agent")), get(named("customer"))) }
     viewModel { AgentTransactionsViewModel(get(named("agent"))) }
 }
