@@ -8,10 +8,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Dns
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -201,19 +203,112 @@ fun QRCodePlaceholder(modifier: Modifier = Modifier) {
 // ─── Invoice Card ─────────────────────────────────────────────────────────────
 
 @Composable
-fun InvoiceCard(invoice: InvoiceResponse) {
+fun InvoiceCard(invoice: InvoiceResponse, onClick: (() -> Unit)? = null) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier),
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
         elevation = CardDefaults.cardElevation(1.dp)
     ) {
         Row(modifier = Modifier.padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(if (invoice.settled) StatusSuccess.copy(alpha = 0.1f) else StatusWarning.copy(alpha = 0.1f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = if (invoice.settled) Icons.Default.CheckCircle else Icons.Default.Schedule,
+                    contentDescription = null,
+                    tint = if (invoice.settled) StatusSuccess else StatusWarning,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+            Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
                 Text("${invoice.amount} sats", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = TextPrimary)
                 Text(invoice.memo.ifEmpty { "No memo" }, style = MaterialTheme.typography.bodySmall, color = TextSecondary, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
             StatusBadge(if (invoice.settled) "Settled" else "Pending", invoice.settled)
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PendingInvoiceBottomSheet(
+    invoice: InvoiceResponse,
+    isLoading: Boolean,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        containerColor = SurfaceWhite,
+        dragHandle = { BottomSheetDefaults.DragHandle(color = DividerColor) }
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 48.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(64.dp)
+                    .clip(CircleShape)
+                    .background(StatusWarning.copy(alpha = 0.1f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Default.Schedule, null, modifier = Modifier.size(32.dp), tint = StatusWarning)
+            }
+            
+            Spacer(Modifier.height(16.dp))
+            
+            Text("Pending Invoice", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+            Text(
+                "This invoice is waiting for payment",
+                style = MaterialTheme.typography.bodyMedium,
+                color = TextSecondary
+            )
+            
+            Spacer(Modifier.height(24.dp))
+            
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = BackgroundLight),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Column(Modifier.padding(16.dp)) {
+                    InfoRow("Amount", "${invoice.amount} sats")
+                    InfoRow("Memo", invoice.memo.ifEmpty { "-" })
+                    InfoRow("Created", invoice.creationDate.toString())
+                }
+            }
+            
+            Spacer(Modifier.height(16.dp))
+            
+            CopyableTextCard("Payment Request", invoice.paymentRequest, PrimaryGreen)
+            
+            Spacer(Modifier.height(32.dp))
+            
+            LoadingButton(
+                text = "Check Payment Status",
+                isLoading = isLoading,
+                accentColor = PrimaryGreen,
+                onClick = onConfirm
+            )
+            
+            Spacer(Modifier.height(12.dp))
+            
+            TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth()) {
+                Text("Dismiss", color = TextSecondary, fontWeight = FontWeight.Medium)
+            }
         }
     }
 }
