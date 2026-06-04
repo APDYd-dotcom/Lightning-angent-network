@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
@@ -30,8 +31,11 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.Image
 import androidx.compose.ui.composed
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.res.painterResource
+import bi.lan.lan.R
 import bi.lan.lan.data.model.BalanceResponse
 import bi.lan.lan.data.model.HealthResponse
 import bi.lan.lan.data.model.InvoiceResponse
@@ -567,12 +571,21 @@ private fun LANBottomNavItem(
 // ─── Lightning Logo ───────────────────────────────────────────────────────────
 
 @Composable
-fun LightningLogo(size: Int = 56, backgroundColor: Color = PrimaryGreen) {
+fun LightningLogo(
+    size: Int = 56,
+    backgroundColor: Color = PrimaryGreen,
+    logoColor: Color? = null
+) {
     Box(
         modifier = Modifier.size(size.dp).clip(RoundedCornerShape((size * 0.25).dp)).background(backgroundColor),
         contentAlignment = Alignment.Center
     ) {
-        Text("⚡", fontSize = (size * 0.45).sp)
+        Image(
+            painter = painterResource(id = R.drawable.logo),
+            contentDescription = "Lightning Logo",
+            modifier = Modifier.size((size * 0.6).dp),
+            colorFilter = logoColor?.let { ColorFilter.tint(it) }
+        )
     }
 }
 

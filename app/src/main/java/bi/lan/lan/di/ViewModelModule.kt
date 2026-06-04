@@ -1,5 +1,6 @@
 package bi.lan.lan.di
 
+import bi.lan.lan.presentation.payment.PaymentViewModel
 import bi.lan.lan.presentation.screens.agent.*
 import bi.lan.lan.presentation.screens.customer.*
 import org.koin.androidx.viewmodel.dsl.viewModel
@@ -7,6 +8,8 @@ import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 val viewModelModule = module {
+    // Payment ViewModel
+    viewModel { PaymentViewModel(get(), get(), get()) }
     // Customer ViewModels
     viewModel { CustomerHomeViewModel(get(named("customer"))) }
     viewModel { CustomerInvoiceViewModel(get(named("customer"))) }

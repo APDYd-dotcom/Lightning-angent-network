@@ -1,0 +1,70 @@
+package bi.lan.lan.data.remote.blink
+
+import bi.lan.lan.AppConfig
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.request.*
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
+import kotlinx.serialization.json.*
+
+class BlinkApiService(private val client: HttpClient) {
+
+    private val apiUrl = AppConfig.BLINK_API_URL
+    private val accessToken = AppConfig.BLINK_ACCESS_TOKEN
+
+    suspend fun getBalance(): BlinkBalanceResponse = client.post(apiUrl) {
+        header("Authorization", "Bearer $accessToken")
+        contentType(ContentType.Application.Json)
+        setBody(GraphQLRequest(query = "query { me { defaultAccount { wallets { id balance walletCurrency } } } }"))
+    }.body()
+
+    suspend fun createInvoice(amount: Long, memo: String, walletId: String): BlinkInvoiceResponse {
+        val query = """
+            mutation lnInvoiceCreate(${'$'}input: LnInvoiceCreateInput!) {
+              lnInvoiceCreate(input: ${'$'}input) {
+                errors { message }
+                invoice { paymentRequest paymentHash }
+              }
+            }
+        """.trimIndent()
+
+        val variables = mapOf(
+            "input" to buildJsonObject {
+                put("amount", amount)
+                put("memo", memo)
+                put("walletId", walletId)
+            }
+        )
+
+        return client.post(apiUrl) {
+            header("Authorization", "Bearer $accessToken")
+            contentType(ContentType.Application.Json)
+            setBody(GraphQLRequest(query = query, variables = variables))
+        }.body()
+    }
+
+    suspend fun payInvoice(paymentRequest: String, walletId: String): BlinkPaymentResponse {
+        val query = """
+            mutation lnInvoicePaymentSend(${'$'}input: LnInvoicePaymentSendInput!) {
+              lnInvoicePaymentSend(input: ${'$'}input) {
+                status
+                errors { message }
+              }
+            }
+        """.trimIndent()
+
+        val variables = mapOf(
+            "input" to buildJsonObject {
+                put("paymentRequest", paymentRequest)
+                put("walletId", walletId)
+            }
+        )
+
+        return client.post(apiUrl) {
+            header("Authorization", "Bearer $accessToken")
+            contentType(ContentType.Application.Json)
+            setBody(GraphQLRequest(query = query, variables = variables))
+        }.body()
+    }
+}

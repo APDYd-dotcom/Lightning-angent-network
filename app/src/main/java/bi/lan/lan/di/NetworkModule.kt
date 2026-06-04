@@ -1,25 +1,19 @@
 package bi.lan.lan.di
 
-import bi.lan.lan.AppConfig
-import bi.lan.lan.data.agent.api.AgentLightningApi
-import bi.lan.lan.data.customer.api.CustomerLightningApi
+import bi.lan.lan.data.remote.blink.BlinkApiService
+import bi.lan.lan.data.remote.lnbits.LnbitsApiService
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
-import io.ktor.client.plugins.DefaultRequest
-import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logger
 import io.ktor.client.plugins.logging.Logging
-import io.ktor.client.request.header
-import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
-import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
-fun createHttpClient(baseUrl: String): HttpClient {
+fun createHttpClient(): HttpClient {
     return HttpClient(Android) {
         install(ContentNegotiation) {
             json(Json {
@@ -41,16 +35,11 @@ fun createHttpClient(baseUrl: String): HttpClient {
             connectTimeoutMillis = 60000
             socketTimeoutMillis = 60000
         }
-        install(DefaultRequest) {
-            header(HttpHeaders.ContentType, ContentType.Application.Json)
-            url(baseUrl)
-        }
     }
 }
 
 val networkModule = module {
-    single(named("customerClient")) { createHttpClient(AppConfig.CUSTOMER_BASE_URL) }
-    single(named("agentClient")) { createHttpClient(AppConfig.AGENT_BASE_URL) }
-    single { CustomerLightningApi(get(named("customerClient"))) }
-    single { AgentLightningApi(get(named("agentClient"))) }
+    single { createHttpClient() }
+    single { BlinkApiService(get()) }
+    single { LnbitsApiService(get()) }
 }
