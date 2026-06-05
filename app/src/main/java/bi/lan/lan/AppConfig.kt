@@ -7,7 +7,7 @@ object AppConfig {
 
     // Blink API
     const val BLINK_API_URL = "https://api.blink.sv/graphql"
-    const val BLINK_ACCESS_TOKEN = "your_blink_access_token" // To be provided by user
+    const val BLINK_ACCESS_TOKEN = "blink_dV5yY3K2ds3YI5ZwjxqFueXhx0dZ6Md4kUbHFx1ZB3iHmV5HYfL0noit0tn25TuM"
 
     // LNbits API
     const val LNBITS_BASE_URL = "https://legend.lnbits.com"
