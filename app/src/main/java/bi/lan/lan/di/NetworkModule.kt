@@ -1,7 +1,6 @@
 package bi.lan.lan.di
 
 import bi.lan.lan.data.remote.blink.BlinkApiService
-import bi.lan.lan.data.remote.lnbits.LnbitsApiService
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -41,5 +40,4 @@ fun createHttpClient(): HttpClient {
 val networkModule = module {
     single { createHttpClient() }
     single { BlinkApiService(get()) }
-    single { LnbitsApiService(get()) }
 }

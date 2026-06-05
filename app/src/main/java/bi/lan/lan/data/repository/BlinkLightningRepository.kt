@@ -7,7 +7,7 @@ import bi.lan.lan.domain.repository.LightningRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-class CustomerLightningRepository(
+class BlinkLightningRepository(
     private val api: BlinkApiService
 ) : LightningRepository {
 
@@ -24,7 +24,7 @@ class CustomerLightningRepository(
 
     override suspend fun getHealth(): NetworkResult<HealthResponse> = NetworkResult.Success(HealthResponse(status = "OK"))
 
-    override suspend fun getInfo(): NetworkResult<NodeInfoResponse> = NetworkResult.Success(NodeInfoResponse(alias = "Blink Customer"))
+    override suspend fun getInfo(): NetworkResult<NodeInfoResponse> = NetworkResult.Success(NodeInfoResponse(alias = "Blink Node"))
 
     override suspend fun getBalance(): NetworkResult<BalanceResponse> = safeCall {
         val blinkBalance = api.getBalance()
@@ -42,11 +42,23 @@ class CustomerLightningRepository(
             CreateInvoiceResponse(paymentRequest = invoice?.paymentRequest ?: "", rHash = invoice?.paymentHash ?: "")
         }
 
-    override suspend fun getInvoices(): NetworkResult<List<InvoiceResponse>> =
-        NetworkResult.Error(message = "Not implemented")
+    override suspend fun getInvoices(): NetworkResult<List<InvoiceResponse>> = safeCall {
+        val res = api.getTransactions(50)
+        res.data?.me?.defaultAccount?.transactions?.edges?.map { edge ->
+            val node = edge.node
+            InvoiceResponse(
+                paymentRequest = node.initiationVia.paymentRequest ?: "",
+                rHash = node.id,
+                amount = node.settlementAmount,
+                memo = node.memo ?: "",
+                settled = node.status == "SUCCESS",
+                creationDate = node.createdAt
+            )
+        } ?: emptyList()
+    }
 
     override suspend fun getInvoice(rHash: String): NetworkResult<InvoiceResponse> =
-        NetworkResult.Error(message = "Not implemented")
+        NetworkResult.Error(message = "Not implemented in Blink")
 
     override suspend fun payInvoice(paymentRequest: String, amount: Long?): NetworkResult<PaymentResponse> =
         safeCall {
@@ -62,18 +74,29 @@ class CustomerLightningRepository(
             }
         }
 
-    override suspend fun getPayments(): NetworkResult<List<PaymentHistoryItem>> =
-        NetworkResult.Error(message = "Not implemented")
+    override suspend fun getPayments(): NetworkResult<List<PaymentHistoryItem>> = safeCall {
+        val res = api.getTransactions(50)
+        res.data?.me?.defaultAccount?.transactions?.edges?.map { edge ->
+            val node = edge.node
+            PaymentHistoryItem(
+                paymentHash = node.id,
+                value = node.settlementAmount,
+                creationDate = node.createdAt,
+                paymentRequest = node.initiationVia.paymentRequest ?: "",
+                status = node.status
+            )
+        } ?: emptyList()
+    }
 
     override suspend fun decodeInvoice(paymentRequest: String): NetworkResult<DecodeInvoiceResponse> =
         safeCall {
-            // Mock decoding for demo mode
+            // Mock decoding for demo mode if not available in Blink API directly
             if (paymentRequest.startsWith("lnbc")) {
                 DecodeInvoiceResponse(
                     destination = "blink_destination_pubkey",
                     paymentHash = "mock_hash",
                     numSatoshis = 1000,
-                    description = "Mock Blink Invoice",
+                    description = "Blink Invoice",
                     expiry = 3600
                 )
             } else {

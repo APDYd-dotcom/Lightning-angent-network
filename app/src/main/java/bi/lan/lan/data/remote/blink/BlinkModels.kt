@@ -1,11 +1,12 @@
 package bi.lan.lan.data.remote.blink
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonObject
 
 @Serializable
 data class GraphQLRequest(
     val query: String,
-    val variables: kotlinx.serialization.json.JsonObject? = null
+    val variables: JsonObject? = null
 )
 
 @Serializable
@@ -26,7 +27,8 @@ data class BlinkMe(
 
 @Serializable
 data class BlinkAccount(
-    val wallets: List<BlinkWallet> = emptyList()
+    val wallets: List<BlinkWallet> = emptyList(),
+    val transactions: BlinkTransactions? = null
 )
 
 @Serializable
@@ -34,6 +36,43 @@ data class BlinkWallet(
     val id: String,
     val balance: Long,
     val walletCurrency: String
+)
+
+@Serializable
+data class BlinkTransactions(
+    val edges: List<BlinkTransactionEdge> = emptyList()
+)
+
+@Serializable
+data class BlinkTransactionEdge(
+    val node: BlinkTransactionNode
+)
+
+@Serializable
+data class BlinkTransactionNode(
+    val id: String,
+    val initiationVia: BlinkInitiationVia,
+    val settlementVia: BlinkSettlementVia,
+    val settlementAmount: Long,
+    val settlementCurrency: String,
+    val settlementDisplayAmount: String,
+    val settlementDisplayCurrency: String,
+    val settlementDisplayFee: String,
+    val status: String,
+    val memo: String? = null,
+    val createdAt: Long
+)
+
+@Serializable
+data class BlinkInitiationVia(
+    val type: String,
+    val paymentRequest: String? = null
+)
+
+@Serializable
+data class BlinkSettlementVia(
+    val type: String,
+    val counterpartyWalletId: String? = null
 )
 
 @Serializable
@@ -78,5 +117,11 @@ data class BlinkPaymentData(
 @Serializable
 data class BlinkLnInvoicePaymentSend(
     val status: String? = null,
+    val errors: List<BlinkError>? = null
+)
+
+@Serializable
+data class BlinkTransactionsResponse(
+    val data: BlinkBalanceData? = null,
     val errors: List<BlinkError>? = null
 )

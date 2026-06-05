@@ -30,13 +30,9 @@ android {
                 "proguard-rules.pro"
             )
             buildConfigField("String", "BLINK_ACCESS_TOKEN", "\"blink_dV5yY3K2ds3YI5ZwjxqFueXhx0dZ6Md4kUbHFx1ZB3iHmV5HYfL0noit0tn25TuM\"")
-            buildConfigField("String", "LNBITS_ADMIN_KEY", "\"your_lnbits_admin_key\"")
-            buildConfigField("String", "LNBITS_BASE_URL", "\"https://legend.lnbits.com\"")
         }
         debug {
             buildConfigField("String", "BLINK_ACCESS_TOKEN", "\"blink_dV5yY3K2ds3YI5ZwjxqFueXhx0dZ6Md4kUbHFx1ZB3iHmV5HYfL0noit0tn25TuM\"")
-            buildConfigField("String", "LNBITS_ADMIN_KEY", "\"your_lnbits_admin_key\"")
-            buildConfigField("String", "LNBITS_BASE_URL", "\"https://legend.lnbits.com\"")
         }
     }
     compileOptions {

@@ -82,4 +82,68 @@ class BlinkApiService(private val client: HttpClient) {
         }
         return response.body()
     }
+
+    suspend fun getTransactions(limit: Int = 20): BlinkTransactionsResponse {
+        val query = """
+            query getTransactions(${'$'}first: Int) {
+              me {
+                defaultAccount {
+                  transactions(first: ${'$'}first) {
+                    edges {
+                      node {
+                        id
+                        initiationVia {
+                          ... on InitiationViaLn {
+                            paymentRequest
+                            type
+                          }
+                          ... on InitiationViaIntraLedger {
+                            type
+                          }
+                          ... on InitiationViaOnChain {
+                            type
+                          }
+                        }
+                        settlementVia {
+                          ... on SettlementViaLn {
+                            type
+                          }
+                          ... on SettlementViaIntraLedger {
+                            counterpartyWalletId
+                            type
+                          }
+                          ... on SettlementViaOnChain {
+                            type
+                          }
+                        }
+                        settlementAmount
+                        settlementCurrency
+                        settlementDisplayAmount
+                        settlementDisplayCurrency
+                        settlementDisplayFee
+                        status
+                        memo
+                        createdAt
+                      }
+                    }
+                  }
+                }
+              }
+            }
+        """.trimIndent()
+
+        val variables = buildJsonObject {
+            put("first", limit)
+        }
+
+        val response = client.post(apiUrl) {
+            header("Authorization", "Bearer $accessToken")
+            contentType(ContentType.Application.Json)
+            setBody(GraphQLRequest(query = query, variables = variables))
+        }
+        if (response.status != HttpStatusCode.OK) {
+            throw Exception("Blink API error: ${response.status.value} ${response.status.description}")
+        }
+        return response.body()
+    }
 }
