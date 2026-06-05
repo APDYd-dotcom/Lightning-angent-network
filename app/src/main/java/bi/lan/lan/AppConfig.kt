@@ -7,11 +7,10 @@ object AppConfig {
 
     // Blink API
     const val BLINK_API_URL = "https://api.blink.sv/graphql"
-    const val BLINK_ACCESS_TOKEN = "your_blink_access_token" // To be provided by user
+    val BLINK_ACCESS_TOKEN = BuildConfig.BLINK_ACCESS_TOKEN
 
     // LNbits API
-    const val LNBITS_BASE_URL = "https://legend.lnbits.com"
-    const val LNBITS_ADMIN_KEY = "your_lnbits_admin_key" // To be provided by user
+    val LNBITS_BASE_URL = BuildConfig.LNBITS_BASE_URL
+    val LNBITS_ADMIN_KEY = BuildConfig.LNBITS_ADMIN_KEY
     const val LNBITS_INVOICE_KEY = "your_lnbits_invoice_key"
 }
-

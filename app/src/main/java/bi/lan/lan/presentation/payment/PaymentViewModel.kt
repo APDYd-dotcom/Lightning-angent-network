@@ -37,32 +37,52 @@ class PaymentViewModel(
         viewModelScope.launch {
             when (val result = getBalanceUseCase()) {
                 is NetworkResult.Success -> _balance.value = result.data
+                is NetworkResult.Error -> {
+                    // Fallback for demo
+                    _balance.value = 0
+                }
                 else -> {}
             }
         }
     }
 
     fun createInvoice(amount: Long, memo: String) {
+        if (amount <= 0) {
+            _state.value = PaymentState.Error("Amount must be greater than 0")
+            return
+        }
         viewModelScope.launch {
             _state.value = PaymentState.Loading
-            when (val result = createInvoiceUseCase(amount, memo)) {
-                is NetworkResult.Success -> _state.value = PaymentState.InvoiceCreated(result.data)
-                is NetworkResult.Error -> _state.value = PaymentState.Error(result.message)
-                else -> {}
+            try {
+                when (val result = createInvoiceUseCase(amount, memo)) {
+                    is NetworkResult.Success -> _state.value = PaymentState.InvoiceCreated(result.data)
+                    is NetworkResult.Error -> _state.value = PaymentState.Error(result.message)
+                    else -> {}
+                }
+            } catch (e: Exception) {
+                _state.value = PaymentState.Error(e.message ?: "Unknown error creating invoice")
             }
         }
     }
 
     fun payInvoice(paymentRequest: String) {
+        if (paymentRequest.isBlank()) {
+            _state.value = PaymentState.Error("Invoice cannot be empty")
+            return
+        }
         viewModelScope.launch {
             _state.value = PaymentState.Loading
-            when (val result = payInvoiceUseCase(paymentRequest)) {
-                is NetworkResult.Success -> {
-                    _state.value = PaymentState.PaymentSuccess(result.data)
-                    fetchBalance()
+            try {
+                when (val result = payInvoiceUseCase(paymentRequest)) {
+                    is NetworkResult.Success -> {
+                        _state.value = PaymentState.PaymentSuccess(result.data)
+                        fetchBalance()
+                    }
+                    is NetworkResult.Error -> _state.value = PaymentState.Error(result.message)
+                    else -> {}
                 }
-                is NetworkResult.Error -> _state.value = PaymentState.Error(result.message)
-                else -> {}
+            } catch (e: Exception) {
+                _state.value = PaymentState.Error(e.message ?: "Unknown error paying invoice")
             }
         }
     }

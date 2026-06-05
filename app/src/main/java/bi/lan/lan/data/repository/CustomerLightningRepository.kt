@@ -66,7 +66,20 @@ class CustomerLightningRepository(
         NetworkResult.Error(message = "Not implemented")
 
     override suspend fun decodeInvoice(paymentRequest: String): NetworkResult<DecodeInvoiceResponse> =
-        NetworkResult.Error(message = "Not implemented")
+        safeCall {
+            // Mock decoding for demo mode
+            if (paymentRequest.startsWith("lnbc")) {
+                DecodeInvoiceResponse(
+                    destination = "blink_destination_pubkey",
+                    paymentHash = "mock_hash",
+                    numSatoshis = 1000,
+                    description = "Mock Blink Invoice",
+                    expiry = 3600
+                )
+            } else {
+                throw Exception("Invalid BOLT11 invoice")
+            }
+        }
 
     private suspend fun <T> safeCall(call: suspend () -> T): NetworkResult<T> {
         return withContext(Dispatchers.IO) {

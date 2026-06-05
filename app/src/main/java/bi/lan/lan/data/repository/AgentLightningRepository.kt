@@ -29,7 +29,7 @@ class AgentLightningRepository(
     override suspend fun getInvoices(): NetworkResult<List<InvoiceResponse>> =
         safeCall {
             api.listTransactions().filter { !it.pending && it.amount > 0 }.map {
-                InvoiceResponse(paymentRequest = "", rHash = it.payment_hash, amount = it.amount, memo = it.memo, settled = true)
+                InvoiceResponse(paymentRequest = "", rHash = it.payment_hash, amount = it.amount, memo = it.memo ?: "", settled = true)
             }
         }
 
@@ -50,7 +50,20 @@ class AgentLightningRepository(
         }
 
     override suspend fun decodeInvoice(paymentRequest: String): NetworkResult<DecodeInvoiceResponse> =
-        NetworkResult.Error(message = "Not implemented")
+        safeCall {
+            // Mock decoding for demo mode
+            if (paymentRequest.startsWith("lnbc")) {
+                DecodeInvoiceResponse(
+                    destination = "lnbits_destination_pubkey",
+                    paymentHash = "mock_hash",
+                    numSatoshis = 500,
+                    description = "Mock LNbits Invoice",
+                    expiry = 3600
+                )
+            } else {
+                throw Exception("Invalid BOLT11 invoice")
+            }
+        }
 
     private suspend fun <T> safeCall(call: suspend () -> T): NetworkResult<T> {
         return withContext(Dispatchers.IO) {

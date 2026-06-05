@@ -5,6 +5,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.*
 import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import kotlinx.serialization.json.*
 
@@ -13,11 +14,17 @@ class BlinkApiService(private val client: HttpClient) {
     private val apiUrl = AppConfig.BLINK_API_URL
     private val accessToken = AppConfig.BLINK_ACCESS_TOKEN
 
-    suspend fun getBalance(): BlinkBalanceResponse = client.post(apiUrl) {
-        header("Authorization", "Bearer $accessToken")
-        contentType(ContentType.Application.Json)
-        setBody(GraphQLRequest(query = "query { me { defaultAccount { wallets { id balance walletCurrency } } } }"))
-    }.body()
+    suspend fun getBalance(): BlinkBalanceResponse {
+        val response = client.post(apiUrl) {
+            header("Authorization", "Bearer $accessToken")
+            contentType(ContentType.Application.Json)
+            setBody(GraphQLRequest(query = "query { me { defaultAccount { wallets { id balance walletCurrency } } } }"))
+        }
+        if (response.status != HttpStatusCode.OK) {
+            throw Exception("Blink API error: ${response.status.value} ${response.status.description}")
+        }
+        return response.body()
+    }
 
     suspend fun createInvoice(amount: Long, memo: String, walletId: String): BlinkInvoiceResponse {
         val query = """
@@ -29,19 +36,23 @@ class BlinkApiService(private val client: HttpClient) {
             }
         """.trimIndent()
 
-        val variables = mapOf(
-            "input" to buildJsonObject {
+        val variables = buildJsonObject {
+            put("input", buildJsonObject {
                 put("amount", amount)
                 put("memo", memo)
                 put("walletId", walletId)
-            }
-        )
+            })
+        }
 
-        return client.post(apiUrl) {
+        val response = client.post(apiUrl) {
             header("Authorization", "Bearer $accessToken")
             contentType(ContentType.Application.Json)
             setBody(GraphQLRequest(query = query, variables = variables))
-        }.body()
+        }
+        if (response.status != HttpStatusCode.OK) {
+            throw Exception("Blink API error: ${response.status.value} ${response.status.description}")
+        }
+        return response.body()
     }
 
     suspend fun payInvoice(paymentRequest: String, walletId: String): BlinkPaymentResponse {
@@ -54,17 +65,21 @@ class BlinkApiService(private val client: HttpClient) {
             }
         """.trimIndent()
 
-        val variables = mapOf(
-            "input" to buildJsonObject {
+        val variables = buildJsonObject {
+            put("input", buildJsonObject {
                 put("paymentRequest", paymentRequest)
                 put("walletId", walletId)
-            }
-        )
+            })
+        }
 
-        return client.post(apiUrl) {
+        val response = client.post(apiUrl) {
             header("Authorization", "Bearer $accessToken")
             contentType(ContentType.Application.Json)
             setBody(GraphQLRequest(query = query, variables = variables))
-        }.body()
+        }
+        if (response.status != HttpStatusCode.OK) {
+            throw Exception("Blink API error: ${response.status.value} ${response.status.description}")
+        }
+        return response.body()
     }
 }

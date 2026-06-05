@@ -40,7 +40,7 @@ data class LnbitsTransaction(
     val payment_hash: String,
     val amount: Long,
     val fee: Long,
-    val memo: String = "",
+    val memo: String? = "",
     val time: Long,
     val pending: Boolean
 )

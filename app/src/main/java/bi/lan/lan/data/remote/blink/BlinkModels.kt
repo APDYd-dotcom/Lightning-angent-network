@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class GraphQLRequest(
     val query: String,
-    val variables: Map<String, kotlinx.serialization.json.JsonElement> = emptyMap()
+    val variables: kotlinx.serialization.json.JsonObject? = null
 )
 
 @Serializable
