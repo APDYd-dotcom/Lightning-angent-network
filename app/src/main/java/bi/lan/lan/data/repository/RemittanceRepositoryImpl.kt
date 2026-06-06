@@ -45,6 +45,7 @@ class RemittanceRepositoryImpl(
                     description = description,
                     invoice = invoice.paymentRequest,
                     transactionId = invoice.paymentHash,
+                    walletId = walletId,
                     createdAt = System.currentTimeMillis(),
                     status = "PENDING"
                 )
@@ -65,17 +66,28 @@ class RemittanceRepositoryImpl(
                 // Check Blink transactions to see if it's paid
                 val transactions = api.getTransactions(50)
                 val tx = transactions.data?.me?.defaultAccount?.transactions?.edges?.find { 
-                    it.node.memo?.contains(reference) == true && it.node.status == "SUCCESS"
+                    it.node.memo?.contains(reference) == true
                 }
 
                 if (tx != null) {
+                    val blinkStatus = tx.node.status
+                    val newStatus = when (blinkStatus.uppercase()) {
+                        "SUCCESS" -> "PAID"
+                        "FAILURE" -> "FAILED"
+                        "PENDING" -> "PENDING"
+                        else -> remittance.status
+                    }
+                    
                     val updatedRemittance = remittance.copy(
-                        status = "PAID",
-                        paidAt = tx.node.createdAt * 1000 // Blink might return seconds
+                        status = newStatus,
+                        paidAt = if (newStatus == "PAID") tx.node.createdAt * 1000 else remittance.paidAt,
+                        transactionId = tx.node.id
                     )
                     dao.updateRemittance(updatedRemittance)
                     NetworkResult.Success(updatedRemittance)
                 } else {
+                    // If not found in recent transactions, check if it's expired locally (optional)
+                    // For now, just return current state
                     NetworkResult.Success(remittance)
                 }
             } catch (e: Exception) {

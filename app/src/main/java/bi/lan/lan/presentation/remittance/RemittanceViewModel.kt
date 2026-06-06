@@ -49,9 +49,17 @@ class RemittanceViewModel(private val repository: RemittanceRepository) : ViewMo
             while (true) {
                 delay(5000) // Poll every 5 seconds
                 val result = repository.checkRemittanceStatus(reference)
-                if (result is NetworkResult.Success && result.data.status == "PAID") {
-                    _uiState.value = RemittanceUiState.Paid(result.data)
-                    break
+                if (result is NetworkResult.Success) {
+                    when (result.data.status) {
+                        "PAID" -> {
+                            _uiState.value = RemittanceUiState.Paid(result.data)
+                            break
+                        }
+                        "FAILED", "EXPIRED" -> {
+                            _uiState.value = RemittanceUiState.Error("Payment ${result.data.status.lowercase()}")
+                            break
+                        }
+                    }
                 }
             }
         }

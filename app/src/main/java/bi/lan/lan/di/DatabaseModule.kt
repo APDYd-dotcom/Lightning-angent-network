@@ -11,7 +11,7 @@ val databaseModule = module {
             androidContext(),
             AppDatabase::class.java,
             "lan_database"
-        ).build()
+        ).fallbackToDestructiveMigration().build()
     }
     single { get<AppDatabase>().remittanceDao() }
 }

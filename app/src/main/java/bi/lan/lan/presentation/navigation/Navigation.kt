@@ -10,6 +10,7 @@ import bi.lan.lan.presentation.screens.agent.*
 import bi.lan.lan.presentation.screens.customer.*
 import bi.lan.lan.presentation.screens.common.*
 import bi.lan.lan.presentation.remittance.*
+import bi.lan.lan.presentation.history.*
 
 @Composable
 fun AppNavigation() {
@@ -61,10 +62,11 @@ fun AppNavigation() {
         }
 
         composable("agent_transactions") {
-            AgentTransactionsScreen(
-                onHome = { navController.navigate("agent_home") { popUpTo("agent_home") { inclusive = false } } },
-                onProfile = { navController.navigate("agent_node_info") { launchSingleTop = true } },
-                onBack = { navController.popBackStack() }
+            HistoryScreen(
+                onBack = { navController.popBackStack() },
+                onItemClick = { remittance ->
+                    navController.navigate("receipt_screen/${remittance.reference}")
+                }
             )
         }
         

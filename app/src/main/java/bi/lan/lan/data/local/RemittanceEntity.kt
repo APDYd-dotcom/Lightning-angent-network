@@ -11,6 +11,7 @@ data class RemittanceEntity(
     val description: String,
     val invoice: String, // BOLT11
     val transactionId: String? = null,
+    val walletId: String? = null,
     val createdAt: Long,
     val paidAt: Long? = null,
     val status: String // PENDING, PAID, EXPIRED, FAILED
