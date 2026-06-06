@@ -108,7 +108,10 @@ fun CustomerHomeScreen(
                 // Balance
                 item {
                     Column(Modifier.padding(horizontal = 20.dp).padding(top = 20.dp)) {
-                        BalanceCard(balance, PrimaryGreen)
+                        FintechBalanceCard(
+                            balance = balance?.walletBalance?.totalBalance ?: 0,
+                            confirmedBalance = balance?.walletBalance?.confirmedBalance ?: 0
+                        )
                     }
                 }
 

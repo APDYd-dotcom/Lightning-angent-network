@@ -3,7 +3,7 @@ package bi.lan.lan.di
 import bi.lan.lan.presentation.payment.PaymentViewModel
 import bi.lan.lan.presentation.screens.agent.*
 import bi.lan.lan.presentation.screens.customer.*
-import bi.lan.lan.presentation.remittance.RemittanceViewModel
+import bi.lan.lan.presentation.remittance.*
 import bi.lan.lan.presentation.history.HistoryViewModel
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.qualifier.named
@@ -29,4 +29,7 @@ val viewModelModule = module {
     // Remittance ViewModels
     viewModel { RemittanceViewModel(get()) }
     viewModel { HistoryViewModel(get()) }
+    viewModel { DashboardViewModel(get(), get(named("agent"))) }
+    viewModel { AnalyticsViewModel(get()) }
+    viewModel { ReceiptViewModel(get()) }
 }

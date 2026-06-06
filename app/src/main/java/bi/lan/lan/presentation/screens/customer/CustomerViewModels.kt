@@ -200,6 +200,13 @@ class CustomerTransactionsViewModel(private val repo: LightningRepository) : Vie
 class NodeInfoViewModel(private val repo: LightningRepository) : ViewModel() {
     private val _info = MutableStateFlow<NodeInfoResponse?>(null)
     val info: StateFlow<NodeInfoResponse?> = _info
+    
+    private val _balance = MutableStateFlow<BalanceResponse?>(null)
+    val balance: StateFlow<BalanceResponse?> = _balance
+    
+    private val _totalTransactions = MutableStateFlow(0)
+    val totalTransactions: StateFlow<Int> = _totalTransactions
+    
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
@@ -207,6 +214,16 @@ class NodeInfoViewModel(private val repo: LightningRepository) : ViewModel() {
         viewModelScope.launch {
             _isLoading.value = true
             when (val r = repo.getInfo()) { is NetworkResult.Success -> _info.value = r.data; else -> {} }
+            when (val r = repo.getBalance()) { is NetworkResult.Success -> _balance.value = r.data; else -> {} }
+            
+            // Count transactions
+            val invoices = repo.getInvoices()
+            val payments = repo.getPayments()
+            var count = 0
+            if (invoices is NetworkResult.Success) count += invoices.data.size
+            if (payments is NetworkResult.Success) count += payments.data.size
+            _totalTransactions.value = count
+
             _isLoading.value = false
         }
     }

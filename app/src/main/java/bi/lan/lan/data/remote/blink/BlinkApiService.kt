@@ -146,4 +146,40 @@ class BlinkApiService(private val client: HttpClient) {
         }
         return response.body()
     }
+
+    suspend fun getAccountDetails(): BlinkBalanceResponse {
+        val query = """
+            query getAccountDetails {
+              me {
+                id
+                username
+                createdAt
+                defaultAccount {
+                  wallets {
+                    id
+                    balance
+                    walletCurrency
+                  }
+                  transactions(first: 100) {
+                    edges {
+                      node {
+                        id
+                      }
+                    }
+                  }
+                }
+              }
+            }
+        """.trimIndent()
+
+        val response = client.post(apiUrl) {
+            header("X-API-KEY", accessToken)
+            contentType(ContentType.Application.Json)
+            setBody(GraphQLRequest(query = query))
+        }
+        if (response.status != HttpStatusCode.OK) {
+            throw Exception("Blink API error: ${response.status.value} ${response.status.description}")
+        }
+        return response.body()
+    }
 }

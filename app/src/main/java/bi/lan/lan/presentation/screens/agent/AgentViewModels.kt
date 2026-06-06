@@ -12,8 +12,16 @@ import kotlinx.coroutines.launch
 class AgentHomeViewModel(private val repo: LightningRepository) : ViewModel() {
     private val _health = MutableStateFlow<HealthResponse?>(null)
     val health: StateFlow<HealthResponse?> = _health
+    
     private val _balance = MutableStateFlow<BalanceResponse?>(null)
     val balance: StateFlow<BalanceResponse?> = _balance
+    
+    private val _info = MutableStateFlow<NodeInfoResponse?>(null)
+    val info: StateFlow<NodeInfoResponse?> = _info
+    
+    private val _recentInvoices = MutableStateFlow<List<InvoiceResponse>>(emptyList())
+    val recentInvoices: StateFlow<List<InvoiceResponse>> = _recentInvoices
+
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
@@ -22,6 +30,11 @@ class AgentHomeViewModel(private val repo: LightningRepository) : ViewModel() {
             _isLoading.value = true
             when (val r = repo.getHealth()) { is NetworkResult.Success -> _health.value = r.data; else -> {} }
             when (val r = repo.getBalance()) { is NetworkResult.Success -> _balance.value = r.data; else -> {} }
+            when (val r = repo.getInfo()) { is NetworkResult.Success -> _info.value = r.data; else -> {} }
+            when (val r = repo.getInvoices()) { 
+                is NetworkResult.Success -> _recentInvoices.value = r.data.sortedByDescending { it.creationDate }.take(5)
+                else -> {} 
+            }
             _isLoading.value = false
         }
     }

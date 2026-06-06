@@ -22,6 +22,9 @@ data class BlinkBalanceData(
 
 @Serializable
 data class BlinkMe(
+    val id: String? = null,
+    val username: String? = null,
+    val createdAt: Long? = null,
     val defaultAccount: BlinkAccount? = null
 )
 

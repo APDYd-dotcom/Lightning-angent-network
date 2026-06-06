@@ -7,50 +7,38 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val LightColorScheme = lightColorScheme(
     primary = PrimaryGreen,
-    onPrimary = SurfaceWhite,
-    primaryContainer = PrimaryGreenLight,
-    onPrimaryContainer = PrimaryGreenDark,
-    secondary = PrimaryGreen, // Use green for secondary as requested
-    onSecondary = SurfaceWhite,
-    secondaryContainer = PrimaryGreenLight,
-    onSecondaryContainer = PrimaryGreenDark,
-    background = BackgroundLight,
-    onBackground = TextPrimary,
-    surface = SurfaceWhite,
-    onSurface = TextPrimary,
-    surfaceVariant = SurfaceCard,
-    onSurfaceVariant = TextSecondary,
+    onPrimary = Color.White,
+    secondary = SecondaryBlue,
+    onSecondary = Color.White,
+    background = Color(0xFFF8FAFB),
+    onBackground = Color(0xFF0F172A),
+    surface = Color.White,
+    onSurface = Color(0xFF0F172A),
     error = StatusError,
-    onError = SurfaceWhite,
-    outline = OutlineColor,
-    outlineVariant = DividerColor
+    onError = Color.White
 )
 
 private val DarkColorScheme = darkColorScheme(
     primary = PrimaryGreen,
-    onPrimary = DarkBackground,
-    primaryContainer = PrimaryGreenDark,
-    onPrimaryContainer = PrimaryGreenLight,
-    secondary = PrimaryGreen,
-    onSecondary = DarkBackground,
-    secondaryContainer = PrimaryGreenDark,
-    onSecondaryContainer = PrimaryGreenLight,
-    background = DarkBackground,
-    onBackground = DarkTextPrimary,
-    surface = DarkSurface,
-    onSurface = DarkTextPrimary,
-    surfaceVariant = DarkSurfaceCard,
-    onSurfaceVariant = DarkTextSecondary,
+    onPrimary = BackgroundDark,
+    secondary = SecondaryBlue,
+    onSecondary = BackgroundDark,
+    background = BackgroundDark,
+    onBackground = TextPrimaryDark,
+    surface = SurfaceDark,
+    onSurface = TextPrimaryDark,
+    surfaceVariant = SurfaceDark,
+    onSurfaceVariant = TextSecondaryDark,
     error = StatusError,
-    onError = SurfaceWhite,
-    outline = DarkOutline,
-    outlineVariant = DarkSurface
+    onError = Color.White,
+    outline = DarkOutline
 )
 
 @Composable
@@ -63,12 +51,12 @@ fun LANTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.primary.toArgb() // Make status bar primary green
+            window.statusBarColor = colorScheme.background.toArgb()
             window.navigationBarColor = colorScheme.background.toArgb()
             
             val isLight = !darkTheme
             WindowCompat.getInsetsController(window, view).apply {
-                isAppearanceLightStatusBars = false // Status bar is primary color (green), text should be light
+                isAppearanceLightStatusBars = isLight
                 isAppearanceLightNavigationBars = isLight
             }
         }

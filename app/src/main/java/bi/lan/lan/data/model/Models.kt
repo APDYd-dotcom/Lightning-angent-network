@@ -160,3 +160,22 @@ data class VerifyMessageRequest(
 
 @Serializable
 data class VerifyMessageResponse(val valid: Boolean = false)
+
+// ─── Unified Remittance ───────────────────────────────────────────────────────
+
+@Serializable
+enum class RemittanceStatus {
+    PENDING, PAID, FAILED, EXPIRED
+}
+
+@Serializable
+data class Remittance(
+    val id: String,
+    val amount: Long,
+    val description: String,
+    val reference: String,
+    val invoice: String,
+    val status: RemittanceStatus,
+    val createdAt: Long,
+    val transactionId: String? = null
+)

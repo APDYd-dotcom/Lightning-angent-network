@@ -2,34 +2,24 @@ package bi.lan.lan.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Primary Brand Colors
-val PrimaryGreen = Color(0xFF0CA789)
-val PrimaryGreenDark = Color(0xFF087A64)
-val PrimaryGreenLight = Color(0xFFE6F7F4)
+val PrimaryGreen = Color(0xFF00D09C)
+val PrimaryGreenDark = Color(0xFF008969)
+val SecondaryBlue = Color(0xFF00AEEF)
+val BackgroundDark = Color(0xFF0F172A)
+val SurfaceDark = Color(0xFF1E293B)
+val StatusSuccess = Color(0xFF00C853)
+val StatusWarning = Color(0xFFFFB300)
+val StatusError = Color(0xFFFF5252)
+val StatusExpired = Color(0xFF94A3B8)
+val TextPrimaryDark = Color(0xFFF8FAFC)
+val TextSecondaryDark = Color(0xFFCBD5E1)
 
-// Background & Surfaces
+// Background & Surfaces (Light) - We will prioritize Dark Theme for the premium feel
 val BackgroundLight = Color(0xFFF8FAFB)
 val SurfaceWhite = Color(0xFFFFFFFF)
 val SurfaceCard = Color(0xFFFFFFFF)
-
-// Text Colors
-val TextPrimary = Color(0xFF1A1C1E)
-val TextSecondary = Color(0xFF42474E)
-val TextHint = Color(0xFF72777F)
-
-// Status & Action (Keeping green as the main theme)
-val StatusSuccess = Color(0xFF10B981)
-val StatusError = Color(0xFFBA1A1A)
-val StatusWarning = Color(0xFFF59E0B)
-
-// Utility
+val TextPrimary = Color(0xFF0F172A)
+val TextSecondary = Color(0xFF64748B)
 val DividerColor = Color(0xFFDEE3EB)
 val OutlineColor = Color(0xFF72777F)
-
-// Dark Theme Colors
-val DarkBackground = Color(0xFF1A1C1E)
-val DarkSurface = Color(0xFF1A1C1E)
-val DarkSurfaceCard = Color(0xFF2E3133)
-val DarkTextPrimary = Color(0xFFE2E2E6)
-val DarkTextSecondary = Color(0xFFC2C7CF)
-val DarkOutline = Color(0xFF8C9199)
+val DarkOutline = Color(0xFF334155)

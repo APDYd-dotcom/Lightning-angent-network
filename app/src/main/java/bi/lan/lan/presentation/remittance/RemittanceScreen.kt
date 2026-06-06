@@ -2,7 +2,6 @@ package bi.lan.lan.presentation.remittance
 
 import android.content.Intent
 import androidx.compose.animation.*
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -10,30 +9,22 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import bi.lan.lan.core.utils.QrGenerator
 import bi.lan.lan.core.utils.ReceiptGenerator
 import bi.lan.lan.data.local.RemittanceEntity
-import bi.lan.lan.presentation.components.CopyableTextCard
-import bi.lan.lan.presentation.components.LANTextField
-import bi.lan.lan.presentation.components.LoadingButton
-import bi.lan.lan.ui.theme.PrimaryGreen
-import bi.lan.lan.ui.theme.StatusSuccess
-import bi.lan.lan.ui.theme.TextPrimary
-import bi.lan.lan.ui.theme.TextSecondary
+import bi.lan.lan.presentation.components.*
+import bi.lan.lan.ui.theme.*
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -50,19 +41,25 @@ fun RemittanceScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Request Remittance", fontWeight = FontWeight.Bold) },
+                title = { Text("Request Remittance", fontWeight = FontWeight.Bold, color = TextPrimaryDark) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = TextPrimaryDark)
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = BackgroundDark,
+                    titleContentColor = TextPrimaryDark
+                )
             )
-        }
+        },
+        containerColor = BackgroundDark
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .background(BackgroundDark)
                 .padding(24.dp)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -70,32 +67,34 @@ fun RemittanceScreen(
             when (val state = uiState) {
                 is RemittanceUiState.Idle, is RemittanceUiState.Loading -> {
                     Text(
-                        "Enter the amount you wish to request from abroad.",
+                        text = "Enter the amount you wish to request from abroad.",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = TextSecondary,
+                        color = TextSecondaryDark,
                         modifier = Modifier.padding(bottom = 24.dp)
                     )
 
-                    LANTextField(
-                        value = amount,
-                        onValueChange = { amount = it },
-                        label = "Amount (sats)",
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                    GlassCard(modifier = Modifier.fillMaxWidth()) {
+                        LANTextField(
+                            value = amount,
+                            onValueChange = { amount = it },
+                            label = "Amount (sats)",
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            modifier = Modifier.fillMaxWidth()
+                        )
 
-                    Spacer(Modifier.height(16.dp))
+                        Spacer(Modifier.height(16.dp))
 
-                    LANTextField(
-                        value = description,
-                        onValueChange = { description = it },
-                        label = "Description (Optional)",
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                        LANTextField(
+                            value = description,
+                            onValueChange = { description = it },
+                            label = "Description (Optional)",
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
 
                     Spacer(Modifier.height(32.dp))
 
-                    LoadingButton(
+                    GradientButton(
                         text = "Generate Remittance Request",
                         isLoading = state is RemittanceUiState.Loading,
                         onClick = {
@@ -142,39 +141,23 @@ fun RemittanceCreatedContent(
     remittance: RemittanceEntity,
     onShare: () -> Unit
 ) {
-    val qrBitmap = remember(remittance.invoice) {
-        QrGenerator.generateQrCode(remittance.invoice)
-    }
-
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
-            "Request Created Successfully!",
+            text = "Request Created Successfully!",
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
             color = PrimaryGreen
         )
+        Spacer(Modifier.height(4.dp))
         Text(
-            "Reference: ${remittance.reference}",
+            text = "Reference: ${remittance.reference}",
             style = MaterialTheme.typography.bodyMedium,
-            color = TextSecondary
+            color = TextSecondaryDark
         )
 
         Spacer(Modifier.height(24.dp))
 
-        Box(
-            modifier = Modifier
-                .size(240.dp)
-                .clip(RoundedCornerShape(16.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant)
-                .padding(16.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Image(
-                bitmap = qrBitmap.asImageBitmap(),
-                contentDescription = "QR Code",
-                modifier = Modifier.fillMaxSize()
-            )
-        }
+        QRCard(invoice = remittance.invoice)
 
         Spacer(Modifier.height(24.dp))
 
@@ -182,26 +165,22 @@ fun RemittanceCreatedContent(
 
         Spacer(Modifier.height(32.dp))
 
-        Button(
-            onClick = onShare,
-            modifier = Modifier.fillMaxWidth().height(56.dp),
-            shape = RoundedCornerShape(28.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen)
-        ) {
-            Icon(Icons.Default.Share, contentDescription = null)
-            Spacer(Modifier.width(8.dp))
-            Text("Share via WhatsApp")
-        }
-
-        Spacer(Modifier.height(16.dp))
-
-        CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
-        Spacer(Modifier.height(8.dp))
-        Text(
-            "Waiting for payment...",
-            style = MaterialTheme.typography.labelSmall,
-            color = TextSecondary
+        GradientButton(
+            text = "Share via WhatsApp",
+            onClick = onShare
         )
+
+        Spacer(Modifier.height(24.dp))
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp, color = PrimaryGreen)
+            Spacer(Modifier.width(10.dp))
+            Text(
+                text = "Waiting for payment...",
+                style = MaterialTheme.typography.labelSmall,
+                color = TextSecondaryDark
+            )
+        }
     }
 }
 
@@ -212,24 +191,31 @@ fun RemittancePaidContent(
     onDone: () -> Unit
 ) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Icon(
-            Icons.Default.CheckCircle,
-            contentDescription = null,
-            tint = StatusSuccess,
-            modifier = Modifier.size(80.dp)
-        )
+        Box(
+            modifier = Modifier
+                .size(80.dp)
+                .background(StatusSuccess.copy(alpha = 0.15f), RoundedCornerShape(40.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                Icons.Default.CheckCircle,
+                contentDescription = null,
+                tint = StatusSuccess,
+                modifier = Modifier.size(48.dp)
+            )
+        }
         
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(24.dp))
         
         Text(
-            "Payment Received!",
+            text = "Payment Received!",
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
-            color = TextPrimary
+            color = TextPrimaryDark
         )
 
         Text(
-            "${remittance.amount} sats",
+            text = "${remittance.amount} sats",
             style = MaterialTheme.typography.displaySmall,
             fontWeight = FontWeight.ExtraBold,
             color = PrimaryGreen
@@ -237,77 +223,71 @@ fun RemittancePaidContent(
 
         Spacer(Modifier.height(24.dp))
 
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-        ) {
-            Column(Modifier.padding(16.dp)) {
-                Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
-                    Text("Reference", style = MaterialTheme.typography.labelSmall)
-                    Text(remittance.reference, fontWeight = FontWeight.Bold)
-                }
-                Spacer(Modifier.height(8.dp))
-                Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
-                    Text("Status", style = MaterialTheme.typography.labelSmall)
-                    Text("SUCCESS", color = StatusSuccess, fontWeight = FontWeight.Bold)
-                }
+        GlassCard(modifier = Modifier.fillMaxWidth()) {
+            Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
+                Text("Reference", style = MaterialTheme.typography.labelSmall, color = TextSecondaryDark)
+                Text(remittance.reference, fontWeight = FontWeight.Bold, color = TextPrimaryDark)
+            }
+            Spacer(Modifier.height(8.dp))
+            Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
+                Text("Status", style = MaterialTheme.typography.labelSmall, color = TextSecondaryDark)
+                StatusChip(status = remittance.status)
             }
         }
 
         Spacer(Modifier.height(32.dp))
 
-        Button(
-            onClick = onShareReceipt,
-            modifier = Modifier.fillMaxWidth().height(56.dp),
-            shape = RoundedCornerShape(28.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen)
-        ) {
-            Icon(Icons.Default.Share, contentDescription = null)
-            Spacer(Modifier.width(8.dp))
-            Text("Share Receipt via WhatsApp")
-        }
+        GradientButton(
+            text = "Share Receipt via WhatsApp",
+            onClick = onShareReceipt
+        )
 
-        Spacer(Modifier.height(12.dp))
+        Spacer(Modifier.height(16.dp))
 
         TextButton(onClick = onDone) {
-            Text("Back to Home", fontWeight = FontWeight.Bold)
+            Text("Back to Home", fontWeight = FontWeight.Bold, color = PrimaryGreen)
         }
     }
 }
 
 private fun shareRemittance(context: android.content.Context, remittance: RemittanceEntity) {
+    val qrUri = bi.lan.lan.core.utils.QrGenerator.generateQrUri(context, remittance.invoice, remittance.reference)
+    
     val message = """
         ⚡ LAN - Lightning Agent Network
         
         Please send me ${remittance.amount} sats.
         
-        Reference:
-        ${remittance.reference}
-        
-        Description:
-        ${remittance.description}
+        Reference: ${remittance.reference}
         
         Lightning Invoice:
         ${remittance.invoice}
-        
-        Thank you.
     """.trimIndent()
 
     val sendIntent = Intent().apply {
         action = Intent.ACTION_SEND
         putExtra(Intent.EXTRA_TEXT, message)
-        type = "text/plain"
+        if (qrUri != null) {
+            putExtra(Intent.EXTRA_STREAM, qrUri)
+            type = "image/png"
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        } else {
+            type = "text/plain"
+        }
         `setPackage`("com.whatsapp")
     }
 
     try {
         context.startActivity(sendIntent)
     } catch (e: Exception) {
-        // Fallback to chooser
         val chooser = Intent.createChooser(Intent().apply {
             action = Intent.ACTION_SEND
             putExtra(Intent.EXTRA_TEXT, message)
-            type = "text/plain"
+            if (qrUri != null) {
+                putExtra(Intent.EXTRA_STREAM, qrUri)
+                type = "image/png"
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
         }, "Share Remittance Request")
         context.startActivity(chooser)
     }
@@ -319,7 +299,8 @@ private fun shareReceipt(context: android.content.Context, remittance: Remittanc
         remittance.amount,
         remittance.reference,
         remittance.transactionId ?: "N/A",
-        remittance.paidAt ?: System.currentTimeMillis()
+        remittance.paidAt ?: System.currentTimeMillis(),
+        remittance.status
     )
 
     val message = """

@@ -1,46 +1,39 @@
 package bi.lan.lan.presentation.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import bi.lan.lan.presentation.screens.agent.*
 import bi.lan.lan.presentation.screens.customer.*
 import bi.lan.lan.presentation.screens.common.*
-import bi.lan.lan.presentation.remittance.RemittanceScreen
-import bi.lan.lan.presentation.history.HistoryScreen
+import bi.lan.lan.presentation.remittance.*
 
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = "splash") {
-        // ... (existing)
         composable("splash") {
             SplashScreen(onNext = {
-                navController.navigate("role_selection") {
+                navController.navigate("agent_home") {
                     popUpTo("splash") { inclusive = true }
                 }
             })
         }
-        composable("role_selection") {
-            RoleSelectionScreen(
-                onCustomer = { navController.navigate("customer_home") },
-                onAgent = { navController.navigate("agent_home") }
-            )
-        }
 
-        // ─── Customer Space ───────────────────────────────────────────────────────
-        composable("customer_home") {
-            CustomerHomeScreen(
-                onCreateInvoice = { navController.navigate("customer_create_invoice") },
-                onPayInvoice = { navController.navigate("customer_pay_invoice") },
-                onDecodeInvoice = { navController.navigate("customer_decode_invoice") },
-                onTransactions = { navController.navigate("customer_transactions") },
-                onNodeInfo = { navController.navigate("customer_node_info") },
+        // ─── Main Unified Space ───────────────────────────────────────────────────
+        composable("agent_home") {
+            DashboardScreen(
                 onRemittance = { navController.navigate("remittance_request") },
-                onRemittanceHistory = { navController.navigate("remittance_history") },
-                onBack = { navController.navigate("role_selection") { popUpTo("role_selection") { inclusive = true } } }
+                onHistory = { navController.navigate("agent_transactions") },
+                onAnalytics = { navController.navigate("analytics_screen") },
+                onProfile = { navController.navigate("agent_node_info") },
+                onRemittanceClick = { remittance -> 
+                    navController.navigate("receipt_screen/${remittance.reference}")
+                }
             )
         }
         
@@ -49,76 +42,36 @@ fun AppNavigation() {
                 onBack = { navController.popBackStack() }
             )
         }
-        
-        composable("remittance_history") {
-            HistoryScreen(
-                onBack = { navController.popBackStack() },
-                onItemClick = { /* Maybe show details */ }
-            )
-        }
-        composable("customer_create_invoice") {
-            CustomerCreateInvoiceScreen(
-                onBack = { navController.popBackStack() }
-            )
-        }
-        composable("customer_pay_invoice") {
-            CustomerPayInvoiceScreen(
-                onRemittanceHistory = { navController.navigate("remittance_history") },
-                onBack = { navController.popBackStack() }
-            )
-        }
-        composable("customer_decode_invoice") {
-            CustomerDecodeInvoiceScreen(
-                onBack = { navController.popBackStack() }
-            )
-        }
-        composable("customer_transactions") {
-            CustomerTransactionsScreen(
-                onHome = { navController.navigate("customer_home") { popUpTo("customer_home") { inclusive = false } } },
-                onNodeInfo = { navController.navigate("customer_node_info") { launchSingleTop = true } },
-                onBack = { navController.popBackStack() }
-            )
-        }
-        composable("customer_node_info") {
-            CustomerNodeInfoScreen(
-                onHome = { navController.navigate("customer_home") { popUpTo("customer_home") { inclusive = false } } },
-                onTransactions = { navController.navigate("customer_transactions") { launchSingleTop = true } },
+
+        composable("analytics_screen") {
+            AnalyticsScreen(
                 onBack = { navController.popBackStack() }
             )
         }
 
-        // ─── Agent Space ──────────────────────────────────────────────────────────
-        composable("agent_home") {
-            AgentHomeScreen(
-                onReceiveDeposit = { navController.navigate("agent_receive_deposit") },
-                onSendWithdrawal = { navController.navigate("agent_send_withdrawal") },
-                onTransactions = { navController.navigate("agent_transactions") },
-                onNodeInfo = { navController.navigate("agent_node_info") },
-                onBack = { navController.navigate("role_selection") { popUpTo("role_selection") { inclusive = true } } }
-            )
-        }
-        composable("agent_receive_deposit") {
-            AgentReceiveDepositScreen(
+        composable(
+            route = "receipt_screen/{reference}",
+            arguments = listOf(navArgument("reference") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val reference = backStackEntry.arguments?.getString("reference") ?: ""
+            ReceiptScreen(
+                reference = reference,
                 onBack = { navController.popBackStack() }
             )
         }
-        composable("agent_send_withdrawal") {
-            AgentProcessWithdrawalScreen(
-                onBack = { navController.popBackStack() }
-            )
-        }
+
         composable("agent_transactions") {
             AgentTransactionsScreen(
                 onHome = { navController.navigate("agent_home") { popUpTo("agent_home") { inclusive = false } } },
-                onNodeInfo = { navController.navigate("agent_node_info") { launchSingleTop = true } },
+                onProfile = { navController.navigate("agent_node_info") { launchSingleTop = true } },
                 onBack = { navController.popBackStack() }
             )
         }
+        
         composable("agent_node_info") {
-            // Reuses Customer's NodeInfoViewModel but gets agent NodeInfoViewModel qualifier from Koin (handled inside AgentNodeInfoScreen)
-            AgentNodeInfoScreen(
+            ProfileScreen(
                 onHome = { navController.navigate("agent_home") { popUpTo("agent_home") { inclusive = false } } },
-                onTransactions = { navController.navigate("agent_transactions") { launchSingleTop = true } },
+                onHistory = { navController.navigate("agent_transactions") { launchSingleTop = true } },
                 onBack = { navController.popBackStack() }
             )
         }

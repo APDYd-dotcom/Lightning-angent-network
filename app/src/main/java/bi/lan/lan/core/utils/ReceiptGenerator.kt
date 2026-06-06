@@ -15,61 +15,106 @@ object ReceiptGenerator {
         amount: Long,
         reference: String,
         txId: String,
-        date: Long
+        date: Long,
+        status: String = "PAID"
     ): Uri? {
         val width = 600
-        val height = 800
+        val height = 900
         val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         val paint = Paint()
 
-        // Background
-        paint.color = Color.WHITE
+        // Background (Premium Dark)
+        paint.color = 0xFF0F172A.toInt() // BackgroundDark
         canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), paint)
 
-        // Header (Greenish like LAN theme)
-        paint.color = 0xFF00A36C.toInt() // Teal/Green
-        canvas.drawRect(0f, 0f, width.toFloat(), 150f, paint)
+        // Accent Gradient Header
+        val gradient = LinearGradient(0f, 0f, width.toFloat(), 200f, 0xFF00D09C.toInt(), 0xFF00AEEF.toInt(), Shader.TileMode.CLAMP)
+        paint.shader = gradient
+        canvas.drawRect(0f, 0f, width.toFloat(), 200f, paint)
+        paint.shader = null
 
+        // Header Text
         paint.color = Color.WHITE
-        paint.textSize = 40f
+        paint.textSize = 48f
         paint.isFakeBoldText = true
-        canvas.drawText("LAN - Lightning Agent Network", 50f, 80f, paint)
-
-        paint.textSize = 30f
+        paint.textAlign = Paint.Align.CENTER
+        canvas.drawText("LAN", width / 2f, 100f, paint)
+        
+        paint.textSize = 20f
         paint.isFakeBoldText = false
-        canvas.drawText("PAYMENT RECEIVED", 50f, 125f, paint)
+        canvas.drawText("Lightning Agent Network", width / 2f, 140f, paint)
 
         // Body
-        paint.color = Color.BLACK
-        paint.textSize = 24f
-        var y = 250f
-        val step = 60f
+        paint.textAlign = Paint.Align.LEFT
+        var y = 300f
+        val step = 80f
+        val margin = 60f
 
-        val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-        val dateStr = dateFormat.format(Date(date))
-
-        canvas.drawText("Amount: $amount sats", 50f, y, paint)
-        y += step
-        canvas.drawText("Reference: $reference", 50f, y, paint)
-        y += step
-        canvas.drawText("Date: $dateStr", 50f, y, paint)
-        y += step
-        canvas.drawText("Status: SUCCESS", 50f, y, paint)
-        y += step
+        // Status Badge
+        val statusColor = when(status.uppercase()) {
+            "PAID", "SUCCESS" -> 0xFF00C853.toInt()
+            "PENDING" -> 0xFFFFB300.toInt()
+            "EXPIRED" -> 0xFF94A3B8.toInt()
+            else -> 0xFFFF5252.toInt()
+        }
         
-        paint.textSize = 18f
-        paint.color = Color.GRAY
-        canvas.drawText("Transaction ID:", 50f, y, paint)
-        y += 30f
-        canvas.drawText(txId, 50f, y, paint)
+        paint.color = statusColor
+        val rect = RectF(margin, y - 40f, margin + 200f, y + 20f)
+        canvas.drawRoundRect(rect, 20f, 20f, paint)
+        
+        paint.color = Color.WHITE
+        paint.textSize = 24f
+        paint.isFakeBoldText = true
+        canvas.drawText(status.uppercase(), margin + 40f, y - 5f, paint)
+        
+        y += 120f
+
+        // Amount
+        paint.color = 0xFF00D09C.toInt()
+        paint.textSize = 64f
+        canvas.drawText("$amount sats", margin, y, paint)
+        y += 100f
+
+        // Divider
+        paint.color = 0xFF334155.toInt()
+        paint.strokeWidth = 2f
+        canvas.drawLine(margin, y, width - margin, y, paint)
+        y += 60f
+
+        // Details
+        paint.color = 0xFFCBD5E1.toInt() // TextSecondaryDark
+        paint.textSize = 22f
+        paint.isFakeBoldText = false
+        
+        canvas.drawText("Reference", margin, y, paint)
+        paint.color = Color.WHITE
+        paint.isFakeBoldText = true
+        canvas.drawText(reference.take(20), width - margin - 250f, y, paint)
+        y += step
+
+        paint.color = 0xFFCBD5E1.toInt()
+        paint.isFakeBoldText = false
+        canvas.drawText("Date", margin, y, paint)
+        paint.color = Color.WHITE
+        paint.isFakeBoldText = true
+        val dateFormat = SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
+        canvas.drawText(dateFormat.format(Date(date)), width - margin - 250f, y, paint)
+        y += step
+
+        paint.color = 0xFFCBD5E1.toInt()
+        paint.isFakeBoldText = false
+        canvas.drawText("Transaction ID", margin, y, paint)
+        paint.color = Color.WHITE
+        paint.isFakeBoldText = true
+        canvas.drawText(txId.take(12) + "...", width - margin - 250f, y, paint)
 
         // Footer
-        y = height - 50f
-        paint.textSize = 20f
-        paint.color = Color.BLACK
+        y = height - 60f
         paint.textAlign = Paint.Align.CENTER
-        canvas.drawText("Powered by LAN ⚡", width / 2f, y, paint)
+        paint.textSize = 18f
+        paint.color = 0xFF475569.toInt()
+        canvas.drawText("Secure • Instant • Borderless", width / 2f, y, paint)
 
         // Save to file
         return try {
