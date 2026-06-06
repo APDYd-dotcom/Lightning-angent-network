@@ -86,13 +86,25 @@ class BlinkApiService(private val client: HttpClient) {
 
     suspend fun getTransactions(limit: Int = 20): BlinkTransactionsResponse {
         val query = """
-            query GetTransactions(${'$'}first: Int) {
+            query transactions(${'$'}first: Int) {
               me {
                 defaultAccount {
                   transactions(first: ${'$'}first) {
                     edges {
                       node {
                         id
+                        initiationVia {
+                          __typename
+                          ... on InitiationViaLn {
+                            paymentRequest
+                          }
+                        }
+                        settlementVia {
+                          __typename
+                          ... on SettlementViaIntraLedger {
+                            counterpartyWalletId
+                          }
+                        }
                         settlementAmount
                         settlementCurrency
                         settlementDisplayAmount
@@ -101,12 +113,6 @@ class BlinkApiService(private val client: HttpClient) {
                         status
                         memo
                         createdAt
-                        initiationVia {
-                          __typename
-                        }
-                        settlementVia {
-                          __typename
-                        }
                       }
                     }
                   }
@@ -124,16 +130,20 @@ class BlinkApiService(private val client: HttpClient) {
 
     suspend fun decodeInvoice(paymentRequest: String): BlinkDecodeInvoiceResponse {
         val query = """
-            query GetInvoiceAmount(${'$'}paymentRequest: LnPaymentRequest!) {
-                invoiceByPaymentRequest(paymentRequest: ${'$'}paymentRequest) {
-                    paymentRequest
+            query lnInvoiceDecode(${'$'}input: LnInvoiceDecodeInput!) {
+                lnInvoiceDecode(input: ${'$'}input) {
+                    paymentHash
                     satoshis
+                    memo
+                    expiry
                 }
             }
         """.trimIndent()
 
         val variables = buildJsonObject {
-            put("paymentRequest", paymentRequest)
+            put("input", buildJsonObject {
+                put("paymentRequest", paymentRequest)
+            })
         }
 
         return executeQuery(query, variables)

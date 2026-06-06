@@ -155,7 +155,8 @@ data class BlinkDecodedInvoice(
     val memo: String? = null,
     val expiry: Long? = null,
     val paymentRequest: String? = null,
-    val paymentStatus: String? = null
+    val paymentStatus: String? = null,
+    val status: String? = null
 )
 
 @Serializable
