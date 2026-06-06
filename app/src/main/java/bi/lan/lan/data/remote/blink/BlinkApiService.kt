@@ -25,8 +25,10 @@ class BlinkApiService(private val client: HttpClient) {
                 lnInvoiceCreateOnBehalfOfRecipient(input: ${'$'}input) {
                     invoice {
                         paymentRequest
+                        paymentHash
                         satoshis
                     }
+                    errors { message }
                 }
             }
         """.trimIndent()

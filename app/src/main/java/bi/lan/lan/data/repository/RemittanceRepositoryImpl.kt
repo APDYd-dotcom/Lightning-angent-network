@@ -37,7 +37,8 @@ class RemittanceRepositoryImpl(
                 val walletId = getWalletId()
                 val reference = generateReference()
                 val blinkRes = api.createInvoice(amount, "Ref: $reference | $description", walletId)
-                val invoice = blinkRes.data?.lnInvoiceCreate?.invoice ?: throw Exception("Failed to create Blink invoice")
+                val invoiceNode = blinkRes.data?.lnInvoiceCreate ?: blinkRes.data?.lnInvoiceCreateOnBehalfOfRecipient
+                val invoice = invoiceNode?.invoice ?: throw Exception("Failed to create Blink invoice")
                 
                 val entity = RemittanceEntity(
                     reference = reference,
