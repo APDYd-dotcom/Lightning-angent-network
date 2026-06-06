@@ -165,13 +165,20 @@ class BlinkApiService(private val client: HttpClient) {
             })
         }
 
+        return executeQuery(query, variables)
+    }
+
+    private suspend inline fun <reified T> executeQuery(query: String, variables: JsonObject? = null): T {
         val response = client.post(apiUrl) {
             header("X-API-KEY", accessToken)
+            // Some Blink environments use Authorization header instead
+            header("Authorization", "Bearer $accessToken")
             contentType(ContentType.Application.Json)
             setBody(GraphQLRequest(query = query, variables = variables))
         }
         if (response.status != HttpStatusCode.OK) {
-            throw Exception("Blink API error: ${response.status.value} ${response.status.description}")
+            val errorBody = response.body<String>()
+            throw Exception("Blink API error: ${response.status.value} - $errorBody")
         }
         return response.body()
     }

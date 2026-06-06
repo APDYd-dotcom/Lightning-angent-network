@@ -47,12 +47,49 @@ class RemittanceRepositoryImpl(
                     transactionId = invoice.paymentHash,
                     walletId = walletId,
                     createdAt = System.currentTimeMillis(),
-                    status = "PENDING"
+                    status = "PENDING",
+                    type = "INBOUND"
                 )
                 dao.insertRemittance(entity)
                 NetworkResult.Success(entity)
             } catch (e: Exception) {
                 NetworkResult.Error(message = e.message ?: "Unknown error creating remittance")
+            }
+        }
+    }
+
+    override suspend fun trackOutboundPayment(
+        paymentRequest: String,
+        amount: Long,
+        description: String,
+        transactionId: String
+    ): RemittanceEntity {
+        return withContext(Dispatchers.IO) {
+            val reference = generateReference()
+            val entity = RemittanceEntity(
+                reference = reference,
+                amount = amount,
+                description = description,
+                invoice = paymentRequest,
+                transactionId = transactionId,
+                createdAt = System.currentTimeMillis(),
+                status = "PAID",
+                paidAt = System.currentTimeMillis(),
+                type = "OUTBOUND"
+            )
+            dao.insertRemittance(entity)
+            entity
+        }
+    }
+
+    override suspend fun getAccountInfo(): NetworkResult<bi.lan.lan.data.remote.blink.BlinkMe> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val res = api.getAccountDetails()
+                val me = res.data?.me ?: throw Exception("Failed to get account details")
+                NetworkResult.Success(me)
+            } catch (e: Exception) {
+                NetworkResult.Error(message = e.message ?: "Unknown error")
             }
         }
     }
@@ -64,8 +101,8 @@ class RemittanceRepositoryImpl(
                 if (remittance.status == "PAID") return@withContext NetworkResult.Success(remittance)
 
                 // Check Blink transactions to see if it's paid
-                val transactions = api.getTransactions(50)
-                val tx = transactions.data?.me?.defaultAccount?.transactions?.edges?.find { 
+                val transactions = api.getTransactions(100)
+                val tx = transactions.data?.me?.defaultAccount?.transactions?.edges?.find {
                     it.node.memo?.contains(reference) == true
                 }
 
@@ -86,9 +123,14 @@ class RemittanceRepositoryImpl(
                     dao.updateRemittance(updatedRemittance)
                     NetworkResult.Success(updatedRemittance)
                 } else {
-                    // If not found in recent transactions, check if it's expired locally (optional)
-                    // For now, just return current state
-                    NetworkResult.Success(remittance)
+                    // Check if expired based on creation time (fallback)
+                    if (System.currentTimeMillis() - remittance.createdAt > 3600 * 1000) {
+                         val updated = remittance.copy(status = "EXPIRED")
+                         dao.updateRemittance(updated)
+                         NetworkResult.Success(updated)
+                    } else {
+                        NetworkResult.Success(remittance)
+                    }
                 }
             } catch (e: Exception) {
                 NetworkResult.Error(message = e.message ?: "Error checking status")
