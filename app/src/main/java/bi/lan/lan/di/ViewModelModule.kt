@@ -6,6 +6,8 @@ import bi.lan.lan.presentation.screens.agent.*
 import bi.lan.lan.presentation.screens.customer.*
 import bi.lan.lan.presentation.remittance.*
 import bi.lan.lan.presentation.history.HistoryViewModel
+import bi.lan.lan.domain.repository.RemittanceRepository
+import bi.lan.lan.domain.repository.LightningRepository
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -29,9 +31,9 @@ val viewModelModule = module {
     viewModel(named("agent")) { NodeInfoViewModel(get(named("agent")), get()) }
 
     // Remittance ViewModels
-    viewModel { RemittanceViewModel(get()) }
-    viewModel { HistoryViewModel(get()) }
-    viewModel { DashboardViewModel(get(), get(named("agent"))) }
-    viewModel { AnalyticsViewModel(get()) }
-    viewModel { ReceiptViewModel(get()) }
+    viewModel { RemittanceViewModel(get<RemittanceRepository>()) }
+    viewModel { HistoryViewModel(get<RemittanceRepository>()) }
+    viewModel { DashboardViewModel(get<RemittanceRepository>(), get<LightningRepository>(named("agent"))) }
+    viewModel { AnalyticsViewModel(get<RemittanceRepository>()) }
+    viewModel { ReceiptViewModel(get<RemittanceRepository>()) }
 }

@@ -30,7 +30,7 @@ fun AppNavigation() {
         composable("agent_home") {
             DashboardScreen(
                 onRemittance = { navController.navigate("remittance_request") },
-                onHistory = { navController.navigate("agent_transactions") },
+                onHistory = { navController.navigate("history_screen") },
                 onPay = { navController.navigate("pay_invoice") },
                 onAnalytics = { navController.navigate("analytics_screen") },
                 onProfile = { navController.navigate("agent_node_info") },
@@ -40,6 +40,15 @@ fun AppNavigation() {
             )
         }
         
+        composable("history_screen") {
+            HistoryScreen(
+                onBack = { navController.popBackStack() },
+                onItemClick = { remittance ->
+                    navController.navigate("receipt_screen/${remittance.reference}")
+                }
+            )
+        }
+
         composable("remittance_request") {
             RemittanceScreen(
                 onBack = { navController.popBackStack() }
@@ -48,7 +57,7 @@ fun AppNavigation() {
 
         composable("pay_invoice") {
             CustomerPayInvoiceScreen(
-                onRemittanceHistory = { navController.navigate("agent_transactions") },
+                onRemittanceHistory = { navController.navigate("history_screen") },
                 onBack = { navController.popBackStack() }
             )
         }
@@ -94,7 +103,7 @@ fun AppNavigation() {
         composable("agent_node_info") {
             ProfileScreen(
                 onHome = { navController.navigate("agent_home") { popUpTo("agent_home") { inclusive = false } } },
-                onHistory = { navController.navigate("agent_transactions") { launchSingleTop = true } },
+                onHistory = { navController.navigate("history_screen") { launchSingleTop = true } },
                 onBack = { navController.popBackStack() }
             )
         }
