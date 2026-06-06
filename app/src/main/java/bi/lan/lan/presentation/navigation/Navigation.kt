@@ -7,13 +7,15 @@ import androidx.navigation.compose.rememberNavController
 import bi.lan.lan.presentation.screens.agent.*
 import bi.lan.lan.presentation.screens.customer.*
 import bi.lan.lan.presentation.screens.common.*
+import bi.lan.lan.presentation.remittance.RemittanceScreen
+import bi.lan.lan.presentation.history.HistoryScreen
 
 @Composable
 fun AppNavigation() {
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = "splash") {
-        // ─── Entry Point ──────────────────────────────────────────────────────────
+        // ... (existing)
         composable("splash") {
             SplashScreen(onNext = {
                 navController.navigate("role_selection") {
@@ -36,7 +38,22 @@ fun AppNavigation() {
                 onDecodeInvoice = { navController.navigate("customer_decode_invoice") },
                 onTransactions = { navController.navigate("customer_transactions") },
                 onNodeInfo = { navController.navigate("customer_node_info") },
+                onRemittance = { navController.navigate("remittance_request") },
+                onRemittanceHistory = { navController.navigate("remittance_history") },
                 onBack = { navController.navigate("role_selection") { popUpTo("role_selection") { inclusive = true } } }
+            )
+        }
+        
+        composable("remittance_request") {
+            RemittanceScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+        
+        composable("remittance_history") {
+            HistoryScreen(
+                onBack = { navController.popBackStack() },
+                onItemClick = { /* Maybe show details */ }
             )
         }
         composable("customer_create_invoice") {
@@ -46,6 +63,7 @@ fun AppNavigation() {
         }
         composable("customer_pay_invoice") {
             CustomerPayInvoiceScreen(
+                onRemittanceHistory = { navController.navigate("remittance_history") },
                 onBack = { navController.popBackStack() }
             )
         }

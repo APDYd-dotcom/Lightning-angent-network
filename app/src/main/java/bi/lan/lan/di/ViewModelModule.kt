@@ -3,6 +3,8 @@ package bi.lan.lan.di
 import bi.lan.lan.presentation.payment.PaymentViewModel
 import bi.lan.lan.presentation.screens.agent.*
 import bi.lan.lan.presentation.screens.customer.*
+import bi.lan.lan.presentation.remittance.RemittanceViewModel
+import bi.lan.lan.presentation.history.HistoryViewModel
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -23,4 +25,8 @@ val viewModelModule = module {
     viewModel { AgentWithdrawalViewModel(get(named("agent")), get(named("customer"))) }
     viewModel { AgentTransactionsViewModel(get(named("agent"))) }
     viewModel(named("agent")) { NodeInfoViewModel(get(named("agent"))) }
+
+    // Remittance ViewModels
+    viewModel { RemittanceViewModel(get()) }
+    viewModel { HistoryViewModel(get()) }
 }

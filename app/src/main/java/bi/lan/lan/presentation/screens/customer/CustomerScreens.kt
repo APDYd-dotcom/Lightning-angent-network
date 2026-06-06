@@ -48,6 +48,8 @@ fun CustomerHomeScreen(
     onDecodeInvoice: () -> Unit,
     onTransactions: () -> Unit,
     onNodeInfo: () -> Unit,
+    onRemittance: () -> Unit,
+    onRemittanceHistory: () -> Unit,
     onBack: () -> Unit
 ) {
     val health by vm.health.collectAsState()
@@ -84,6 +86,22 @@ fun CustomerHomeScreen(
                                 CircularProgressIndicator(color = SurfaceWhite, modifier = Modifier.size(24.dp))
                             }
                         }
+
+                        Spacer(Modifier.height(24.dp))
+                        SectionHeader("Remittance History")
+                        Spacer(Modifier.height(12.dp))
+                        Card(
+                            modifier = Modifier.fillMaxWidth().clickable { onRemittanceHistory() },
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
+                            elevation = CardDefaults.cardElevation(1.dp)
+                        ) {
+                            Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.History, null, tint = PrimaryGreen)
+                                Spacer(Modifier.width(12.dp))
+                                Text("View All Remittance Requests", fontWeight = FontWeight.Bold)
+                            }
+                        }
                     }
                 }
 
@@ -113,6 +131,23 @@ fun CustomerHomeScreen(
                             ) {
                                 QuickActionButton(Icons.Default.CallReceived, "Receive", PrimaryGreen, onCreateInvoice)
                                 QuickActionButton(Icons.Default.CallMade, "Send", PrimaryGreen, onPayInvoice)
+                                QuickActionButton(Icons.Default.VolunteerActivism, "Remittance", PrimaryGreen, onRemittance)
+                            }
+                        }
+
+                        Spacer(Modifier.height(24.dp))
+                        SectionHeader("Remittance History")
+                        Spacer(Modifier.height(12.dp))
+                        Card(
+                            modifier = Modifier.fillMaxWidth().clickable { onRemittanceHistory() },
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
+                            elevation = CardDefaults.cardElevation(1.dp)
+                        ) {
+                            Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.History, null, tint = PrimaryGreen)
+                                Spacer(Modifier.width(12.dp))
+                                Text("View All Remittance Requests", fontWeight = FontWeight.Bold)
                             }
                         }
                     }
@@ -231,7 +266,11 @@ fun CustomerCreateInvoiceScreen(vm: CustomerInvoiceViewModel = koinViewModel(), 
 // ─── Pay Invoice ──────────────────────────────────────────────────────────────
 
 @Composable
-fun CustomerPayInvoiceScreen(vm: CustomerPaymentViewModel = koinViewModel(), onBack: () -> Unit) {
+fun CustomerPayInvoiceScreen(
+    vm: CustomerPaymentViewModel = koinViewModel(),
+    onRemittanceHistory: () -> Unit,
+    onBack: () -> Unit
+) {
     val payReq by vm.payReq.collectAsState()
     val amount by vm.amount.collectAsState()
     val result by vm.result.collectAsState()
@@ -336,6 +375,22 @@ fun CustomerPayInvoiceScreen(vm: CustomerPaymentViewModel = koinViewModel(), onB
                                     }
                                     if (isSelected) Icon(Icons.Default.CheckCircle, null, tint = PrimaryGreen)
                                 }
+                            }
+                        }
+
+                        Spacer(Modifier.height(24.dp))
+                        SectionHeader("Remittance History")
+                        Spacer(Modifier.height(12.dp))
+                        Card(
+                            modifier = Modifier.fillMaxWidth().clickable { onRemittanceHistory() },
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
+                            elevation = CardDefaults.cardElevation(1.dp)
+                        ) {
+                            Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.History, null, tint = PrimaryGreen)
+                                Spacer(Modifier.width(12.dp))
+                                Text("View All Remittance Requests", fontWeight = FontWeight.Bold)
                             }
                         }
                     }
