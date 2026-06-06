@@ -16,7 +16,7 @@ class BlinkApiService(private val client: HttpClient) {
 
     suspend fun getBalance(): BlinkBalanceResponse {
         val response = client.post(apiUrl) {
-            header("Authorization", "Bearer $accessToken")
+            header("X-API-KEY", accessToken)
             contentType(ContentType.Application.Json)
             setBody(GraphQLRequest(query = "query { me { defaultAccount { wallets { id balance walletCurrency } } } }"))
         }
@@ -45,7 +45,7 @@ class BlinkApiService(private val client: HttpClient) {
         }
 
         val response = client.post(apiUrl) {
-            header("Authorization", "Bearer $accessToken")
+            header("X-API-KEY", accessToken)
             contentType(ContentType.Application.Json)
             setBody(GraphQLRequest(query = query, variables = variables))
         }
@@ -73,7 +73,7 @@ class BlinkApiService(private val client: HttpClient) {
         }
 
         val response = client.post(apiUrl) {
-            header("Authorization", "Bearer $accessToken")
+            header("X-API-KEY", accessToken)
             contentType(ContentType.Application.Json)
             setBody(GraphQLRequest(query = query, variables = variables))
         }
@@ -137,7 +137,7 @@ class BlinkApiService(private val client: HttpClient) {
         }
 
         val response = client.post(apiUrl) {
-            header("Authorization", "Bearer $accessToken")
+            header("X-API-KEY", accessToken)
             contentType(ContentType.Application.Json)
             setBody(GraphQLRequest(query = query, variables = variables))
         }
