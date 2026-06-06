@@ -368,6 +368,8 @@ fun AgentTransactionsScreen(
     vm: AgentTransactionsViewModel = koinViewModel(),
     onHome: () -> Unit,
     onProfile: () -> Unit,
+    onInvoiceDetail: (String) -> Unit,
+    onPaymentDetail: (String) -> Unit,
     onBack: () -> Unit
 ) {
     val invoices by vm.invoices.collectAsState()
@@ -440,7 +442,7 @@ fun AgentTransactionsScreen(
                                 subtitle = "Ref: ${invoice.rHash.take(8)}",
                                 amount = "${invoice.amount} sats",
                                 status = if (invoice.settled) "PAID" else "PENDING",
-                                onClick = { /* Show details */ }
+                                onClick = { onInvoiceDetail(invoice.rHash) }
                             )
                         }
                     } else {
@@ -450,7 +452,7 @@ fun AgentTransactionsScreen(
                                 subtitle = "Ref: ${payment.paymentHash.take(8)}",
                                 amount = "${payment.value} sats",
                                 status = payment.status,
-                                onClick = { /* Show details */ }
+                                onClick = { onPaymentDetail(payment.paymentHash) }
                             )
                         }
                     }
@@ -472,6 +474,7 @@ fun ProfileScreen(
 ) {
     val info by vm.info.collectAsState()
     val balance by vm.balance.collectAsState()
+    val accountDetails by vm.accountDetails.collectAsState()
     val totalTransactions by vm.totalTransactions.collectAsState()
     val isLoading by vm.isLoading.collectAsState()
     
@@ -524,7 +527,7 @@ fun ProfileScreen(
                 Spacer(Modifier.height(16.dp))
                 
                 Text(
-                    text = info?.alias ?: "Agent Name",
+                    text = accountDetails?.username ?: info?.alias ?: "Agent",
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Black,
                     color = TextPrimaryDark
@@ -540,13 +543,17 @@ fun ProfileScreen(
                 Spacer(Modifier.height(32.dp))
                 
                 GlassCard {
-                    ProfileInfoRow("Wallet ID", info?.identityPubkey?.take(16) + "...", true)
+                    ProfileInfoRow("Wallet ID", accountDetails?.id?.take(16) ?: info?.identityPubkey?.take(16) ?: "...", true)
                     HorizontalDivider(color = DarkOutline.copy(alpha = 0.3f), modifier = Modifier.padding(vertical = 12.dp))
                     ProfileInfoRow("Total Balance", "${balance?.walletBalance?.totalBalance ?: 0} sats")
                     ProfileInfoRow("Confirmed", "${balance?.walletBalance?.confirmedBalance ?: 0} sats")
                     HorizontalDivider(color = DarkOutline.copy(alpha = 0.3f), modifier = Modifier.padding(vertical = 12.dp))
                     ProfileInfoRow("Transactions", totalTransactions.toString())
-                    ProfileInfoRow("Member Since", "March 2024") // Fallback as requested if not in API
+                    
+                    val memberSince = accountDetails?.createdAt?.let {
+                        java.text.SimpleDateFormat("MMMM yyyy", java.util.Locale.getDefault()).format(java.util.Date(it * 1000))
+                    } ?: "March 2024"
+                    ProfileInfoRow("Member Since", memberSince)
                 }
                 
                 Spacer(Modifier.height(24.dp))

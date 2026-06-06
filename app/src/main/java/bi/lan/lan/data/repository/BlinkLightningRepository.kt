@@ -90,18 +90,16 @@ class BlinkLightningRepository(
 
     override suspend fun decodeInvoice(paymentRequest: String): NetworkResult<DecodeInvoiceResponse> =
         safeCall {
-            // Mock decoding for demo mode if not available in Blink API directly
-            if (paymentRequest.startsWith("lnbc")) {
-                DecodeInvoiceResponse(
-                    destination = "blink_destination_pubkey",
-                    paymentHash = "mock_hash",
-                    numSatoshis = 1000,
-                    description = "Blink Invoice",
-                    expiry = 3600
-                )
-            } else {
-                throw Exception("Invalid BOLT11 invoice")
-            }
+            val res = api.decodeInvoice(paymentRequest)
+            val decoded = res.data?.lnInvoiceDecode ?: throw Exception("Failed to decode invoice: ${res.errors?.firstOrNull()?.message ?: "Unknown error"}")
+            
+            DecodeInvoiceResponse(
+                paymentHash = decoded.paymentHash,
+                numSatoshis = decoded.amount ?: 0,
+                description = decoded.memo ?: "",
+                expiry = decoded.expiry ?: 0,
+                destination = "Blink Network" // Galoy doesn't always expose destination pubkey in this query
+            )
         }
 
     private suspend fun <T> safeCall(call: suspend () -> T): NetworkResult<T> {

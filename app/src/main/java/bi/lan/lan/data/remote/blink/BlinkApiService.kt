@@ -147,7 +147,36 @@ class BlinkApiService(private val client: HttpClient) {
         return response.body()
     }
 
-    suspend fun getAccountDetails(): BlinkBalanceResponse {
+    suspend fun decodeInvoice(paymentRequest: String): BlinkDecodeInvoiceResponse {
+        val query = """
+            query lnInvoiceDecode(${'$'}input: LnInvoiceDecodeInput!) {
+              lnInvoiceDecode(input: ${'$'}input) {
+                paymentHash
+                amount
+                memo
+                expiry
+              }
+            }
+        """.trimIndent()
+
+        val variables = buildJsonObject {
+            put("input", buildJsonObject {
+                put("paymentRequest", paymentRequest)
+            })
+        }
+
+        val response = client.post(apiUrl) {
+            header("X-API-KEY", accessToken)
+            contentType(ContentType.Application.Json)
+            setBody(GraphQLRequest(query = query, variables = variables))
+        }
+        if (response.status != HttpStatusCode.OK) {
+            throw Exception("Blink API error: ${response.status.value} ${response.status.description}")
+        }
+        return response.body()
+    }
+
+    suspend fun getAccountDetails(): BlinkAccountDetailsResponse {
         val query = """
             query getAccountDetails {
               me {
@@ -159,13 +188,6 @@ class BlinkApiService(private val client: HttpClient) {
                     id
                     balance
                     walletCurrency
-                  }
-                  transactions(first: 100) {
-                    edges {
-                      node {
-                        id
-                      }
-                    }
                   }
                 }
               }

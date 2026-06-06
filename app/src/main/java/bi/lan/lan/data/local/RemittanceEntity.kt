@@ -14,5 +14,6 @@ data class RemittanceEntity(
     val walletId: String? = null,
     val createdAt: Long,
     val paidAt: Long? = null,
-    val status: String // PENDING, PAID, EXPIRED, FAILED
+    val status: String, // PENDING, PAID, EXPIRED, FAILED
+    val type: String = "INBOUND" // INBOUND or OUTBOUND
 )

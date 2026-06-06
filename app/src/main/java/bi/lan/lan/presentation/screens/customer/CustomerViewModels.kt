@@ -7,6 +7,7 @@ import bi.lan.lan.data.remote.NetworkResult
 import bi.lan.lan.domain.repository.LightningRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class CustomerHomeViewModel(private val repo: LightningRepository) : ViewModel() {
@@ -81,29 +82,45 @@ class CustomerInvoiceViewModel(private val repo: LightningRepository) : ViewMode
 
 class CustomerPaymentViewModel(
     private val customerRepo: LightningRepository,
-    private val agentRepo: LightningRepository
+    private val agentRepo: LightningRepository,
+    private val remittanceRepo: bi.lan.lan.domain.repository.RemittanceRepository
 ) : ViewModel() {
     private val _payReq = MutableStateFlow("")
     val payReq: StateFlow<String> = _payReq
+    
     private val _amount = MutableStateFlow("")
     val amount: StateFlow<String> = _amount
+    
     private val _result = MutableStateFlow<PaymentResponse?>(null)
     val result: StateFlow<PaymentResponse?> = _result
+    
     private val _decoded = MutableStateFlow<DecodeInvoiceResponse?>(null)
     val decoded: StateFlow<DecodeInvoiceResponse?> = _decoded
+    
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
+    
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
     private val _agentInvoices = MutableStateFlow<List<InvoiceResponse>>(emptyList())
     val agentInvoices: StateFlow<List<InvoiceResponse>> = _agentInvoices
 
+    // New state for success screen
+    private val _isSuccess = MutableStateFlow(false)
+    val isSuccess: StateFlow<Boolean> = _isSuccess
+
     init {
         loadAgentInvoices()
     }
 
-    fun updatePayReq(v: String) { _payReq.value = v }
+    fun updatePayReq(v: String) { 
+        _payReq.value = v 
+        if (v.startsWith("lnbc", ignoreCase = true)) {
+            decodeInvoice()
+        }
+    }
+    
     fun updateAmount(v: String) { _amount.value = v }
 
     fun loadAgentInvoices() {
@@ -112,7 +129,6 @@ class CustomerPaymentViewModel(
             _error.value = null
             when (val r = agentRepo.getInvoices()) {
                 is NetworkResult.Success -> {
-                    // Filter for unsettled agent invoices (these are deposit requests for the customer)
                     _agentInvoices.value = r.data.filter { !it.settled }
                 }
                 is NetworkResult.Error -> _error.value = r.message
@@ -131,10 +147,20 @@ class CustomerPaymentViewModel(
         if (_payReq.value.isBlank()) return
         viewModelScope.launch {
             _isLoading.value = true; _error.value = null
-            when (val r = customerRepo.payInvoice(_payReq.value, _amount.value.toLongOrNull())) {
+            val amt = _amount.value.toLongOrNull() ?: _decoded.value?.numSatoshis ?: 0L
+            val desc = _decoded.value?.description ?: "Payment"
+            when (val r = customerRepo.payInvoice(_payReq.value, if (amt > 0) amt else null)) {
                 is NetworkResult.Success -> {
                     _result.value = r.data
-                    loadAgentInvoices() // Refresh list
+                    _isSuccess.value = true
+                    // Track in local history
+                    remittanceRepo.trackOutboundPayment(
+                        paymentRequest = _payReq.value,
+                        amount = amt,
+                        description = desc,
+                        transactionId = r.data.paymentHash
+                    )
+                    loadAgentInvoices()
                 }
                 is NetworkResult.Error -> _error.value = r.message
                 else -> {}
@@ -147,6 +173,7 @@ class CustomerPaymentViewModel(
         if (_payReq.value.isBlank()) return
         viewModelScope.launch {
             _isLoading.value = true; _error.value = null
+            _decoded.value = null
             when (val r = customerRepo.decodeInvoice(_payReq.value)) {
                 is NetworkResult.Success -> _decoded.value = r.data
                 is NetworkResult.Error -> _error.value = r.message
@@ -154,6 +181,15 @@ class CustomerPaymentViewModel(
             }
             _isLoading.value = false
         }
+    }
+
+    fun reset() {
+        _payReq.value = ""
+        _amount.value = ""
+        _decoded.value = null
+        _result.value = null
+        _isSuccess.value = false
+        _error.value = null
     }
 }
 
@@ -197,13 +233,19 @@ class CustomerTransactionsViewModel(private val repo: LightningRepository) : Vie
     }
 }
 
-class NodeInfoViewModel(private val repo: LightningRepository) : ViewModel() {
+class NodeInfoViewModel(
+    private val repo: LightningRepository,
+    private val remittanceRepo: bi.lan.lan.domain.repository.RemittanceRepository
+) : ViewModel() {
     private val _info = MutableStateFlow<NodeInfoResponse?>(null)
     val info: StateFlow<NodeInfoResponse?> = _info
     
     private val _balance = MutableStateFlow<BalanceResponse?>(null)
     val balance: StateFlow<BalanceResponse?> = _balance
     
+    private val _accountDetails = MutableStateFlow<bi.lan.lan.data.remote.blink.BlinkMe?>(null)
+    val accountDetails: StateFlow<bi.lan.lan.data.remote.blink.BlinkMe?> = _accountDetails
+
     private val _totalTransactions = MutableStateFlow(0)
     val totalTransactions: StateFlow<Int> = _totalTransactions
     
@@ -215,14 +257,12 @@ class NodeInfoViewModel(private val repo: LightningRepository) : ViewModel() {
             _isLoading.value = true
             when (val r = repo.getInfo()) { is NetworkResult.Success -> _info.value = r.data; else -> {} }
             when (val r = repo.getBalance()) { is NetworkResult.Success -> _balance.value = r.data; else -> {} }
+            when (val r = remittanceRepo.getAccountInfo()) { is NetworkResult.Success -> _accountDetails.value = r.data; else -> {} }
             
-            // Count transactions
-            val invoices = repo.getInvoices()
-            val payments = repo.getPayments()
-            var count = 0
-            if (invoices is NetworkResult.Success) count += invoices.data.size
-            if (payments is NetworkResult.Success) count += payments.data.size
-            _totalTransactions.value = count
+            // Count local transactions
+            remittanceRepo.getRemittances().first().let { 
+                _totalTransactions.value = it.size
+            }
 
             _isLoading.value = false
         }

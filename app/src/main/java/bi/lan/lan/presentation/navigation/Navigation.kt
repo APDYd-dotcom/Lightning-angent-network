@@ -11,6 +11,7 @@ import bi.lan.lan.presentation.screens.customer.*
 import bi.lan.lan.presentation.screens.common.*
 import bi.lan.lan.presentation.remittance.*
 import bi.lan.lan.presentation.history.*
+import bi.lan.lan.presentation.payment.PaymentDetailScreen
 
 @Composable
 fun AppNavigation() {
@@ -30,6 +31,7 @@ fun AppNavigation() {
             DashboardScreen(
                 onRemittance = { navController.navigate("remittance_request") },
                 onHistory = { navController.navigate("agent_transactions") },
+                onPay = { navController.navigate("pay_invoice") },
                 onAnalytics = { navController.navigate("analytics_screen") },
                 onProfile = { navController.navigate("agent_node_info") },
                 onRemittanceClick = { remittance -> 
@@ -40,6 +42,13 @@ fun AppNavigation() {
         
         composable("remittance_request") {
             RemittanceScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+
+        composable("pay_invoice") {
+            CustomerPayInvoiceScreen(
+                onRemittanceHistory = { navController.navigate("agent_transactions") },
                 onBack = { navController.popBackStack() }
             )
         }
@@ -61,12 +70,24 @@ fun AppNavigation() {
             )
         }
 
+        composable(
+            route = "payment_detail/{hash}",
+            arguments = listOf(navArgument("hash") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val hash = backStackEntry.arguments?.getString("hash") ?: ""
+            PaymentDetailScreen(
+                paymentHash = hash,
+                onBack = { navController.popBackStack() }
+            )
+        }
+
         composable("agent_transactions") {
-            HistoryScreen(
-                onBack = { navController.popBackStack() },
-                onItemClick = { remittance ->
-                    navController.navigate("receipt_screen/${remittance.reference}")
-                }
+            AgentTransactionsScreen(
+                onHome = { navController.navigate("agent_home") { popUpTo("agent_home") { inclusive = false } } },
+                onProfile = { navController.navigate("agent_node_info") { launchSingleTop = true } },
+                onInvoiceDetail = { rHash -> /* Details for received invoices if needed */ },
+                onPaymentDetail = { hash -> navController.navigate("payment_detail/$hash") },
+                onBack = { navController.popBackStack() }
             )
         }
         

@@ -383,6 +383,7 @@ fun StatusChip(
         "PAID", "SETTLED", "SUCCESS" -> Triple(StatusSuccess, "Paid", "🟢")
         "PENDING" -> Triple(StatusWarning, "Pending", "🟡")
         "EXPIRED" -> Triple(StatusExpired, "Expired", "⚫")
+        "VALID" -> Triple(SecondaryBlue, "Valid", "🔵")
         else -> Triple(StatusError, "Failed", "🔴")
     }
     
@@ -818,9 +819,9 @@ fun InvoiceCardSkeleton() {
 }
 
 @Composable
-fun PaymentCard(payment: PaymentHistoryItem) {
+fun PaymentCard(payment: PaymentHistoryItem, onClick: () -> Unit) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
         elevation = CardDefaults.cardElevation(1.dp)

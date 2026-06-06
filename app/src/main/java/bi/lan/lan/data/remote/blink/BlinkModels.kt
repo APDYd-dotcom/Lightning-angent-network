@@ -128,3 +128,34 @@ data class BlinkTransactionsResponse(
     val data: BlinkBalanceData? = null,
     val errors: List<BlinkError>? = null
 )
+
+@Serializable
+data class BlinkDecodeInvoiceResponse(
+    val data: BlinkDecodeInvoiceData? = null,
+    val errors: List<BlinkError>? = null
+)
+
+@Serializable
+data class BlinkDecodeInvoiceData(
+    val lnInvoiceDecode: BlinkDecodedInvoice? = null
+)
+
+@Serializable
+data class BlinkDecodedInvoice(
+    val paymentHash: String,
+    val amount: Long? = null,
+    val memo: String? = null,
+    val expiry: Long? = null,
+    val paymentRequest: String? = null
+)
+
+@Serializable
+data class BlinkAccountDetailsResponse(
+    val data: BlinkAccountDetailsData? = null,
+    val errors: List<BlinkError>? = null
+)
+
+@Serializable
+data class BlinkAccountDetailsData(
+    val me: BlinkMe? = null
+)
