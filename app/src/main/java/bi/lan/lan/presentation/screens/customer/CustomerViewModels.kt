@@ -170,16 +170,29 @@ class CustomerPaymentViewModel(
     }
 
     fun decodeInvoice() {
-        if (_payReq.value.isBlank()) return
+        if (_payReq.value.isBlank()) {
+            _error.value = "Invalid Lightning Invoice: Invoice cannot be empty"
+            return
+        }
+        if (!_payReq.value.lowercase().startsWith("lnbc")) {
+            _error.value = "Invalid Lightning Invoice: Must start with 'lnbc'"
+            return
+        }
+        
         viewModelScope.launch {
             _isLoading.value = true; _error.value = null
             _decoded.value = null
-            when (val r = customerRepo.decodeInvoice(_payReq.value)) {
-                is NetworkResult.Success -> _decoded.value = r.data
-                is NetworkResult.Error -> _error.value = r.message
-                else -> {}
+            try {
+                when (val r = customerRepo.decodeInvoice(_payReq.value)) {
+                    is NetworkResult.Success -> _decoded.value = r.data
+                    is NetworkResult.Error -> _error.value = r.message
+                    else -> {}
+                }
+            } catch (e: Exception) {
+                _error.value = "Error decoding invoice: ${e.message}"
+            } finally {
+                _isLoading.value = false
             }
-            _isLoading.value = false
         }
     }
 

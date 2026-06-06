@@ -17,7 +17,8 @@ data class BlinkBalanceResponse(
 
 @Serializable
 data class BlinkBalanceData(
-    val me: BlinkMe? = null
+    val me: BlinkMe? = null,
+    val accountDefaultWallet: BlinkWallet? = null
 )
 
 @Serializable
@@ -37,8 +38,9 @@ data class BlinkAccount(
 @Serializable
 data class BlinkWallet(
     val id: String,
-    val balance: Long,
-    val walletCurrency: String
+    val balance: Long? = null,
+    val walletCurrency: String? = null,
+    val currency: String? = null
 )
 
 @Serializable
@@ -54,8 +56,8 @@ data class BlinkTransactionEdge(
 @Serializable
 data class BlinkTransactionNode(
     val id: String,
-    val initiationVia: BlinkInitiationVia,
-    val settlementVia: BlinkSettlementVia,
+    val initiationVia: BlinkInitiationVia? = null,
+    val settlementVia: BlinkSettlementVia? = null,
     val settlementAmount: Long,
     val settlementCurrency: String,
     val settlementDisplayAmount: String,
@@ -68,13 +70,13 @@ data class BlinkTransactionNode(
 
 @Serializable
 data class BlinkInitiationVia(
-    val type: String,
+    @kotlinx.serialization.SerialName("__typename") val type: String? = null,
     val paymentRequest: String? = null
 )
 
 @Serializable
 data class BlinkSettlementVia(
-    val type: String,
+    @kotlinx.serialization.SerialName("__typename") val type: String? = null,
     val counterpartyWalletId: String? = null
 )
 
@@ -91,7 +93,8 @@ data class BlinkInvoiceResponse(
 
 @Serializable
 data class BlinkInvoiceData(
-    val lnInvoiceCreate: BlinkLnInvoiceCreate? = null
+    val lnInvoiceCreate: BlinkLnInvoiceCreate? = null,
+    val lnInvoiceCreateOnBehalfOfRecipient: BlinkLnInvoiceCreate? = null
 )
 
 @Serializable
@@ -103,7 +106,8 @@ data class BlinkLnInvoiceCreate(
 @Serializable
 data class BlinkInvoice(
     val paymentRequest: String,
-    val paymentHash: String
+    val paymentHash: String? = null,
+    val satoshis: Long? = null
 )
 
 @Serializable
@@ -114,7 +118,9 @@ data class BlinkPaymentResponse(
 
 @Serializable
 data class BlinkPaymentData(
-    val lnInvoicePaymentSend: BlinkLnInvoicePaymentSend? = null
+    val lnInvoicePaymentSend: BlinkLnInvoicePaymentSend? = null,
+    val lnNoAmountInvoicePaymentSend: BlinkLnInvoicePaymentSend? = null,
+    val lnAddressPaymentSend: BlinkLnInvoicePaymentSend? = null
 )
 
 @Serializable
@@ -137,16 +143,19 @@ data class BlinkDecodeInvoiceResponse(
 
 @Serializable
 data class BlinkDecodeInvoiceData(
-    val lnInvoiceDecode: BlinkDecodedInvoice? = null
+    val lnInvoiceDecode: BlinkDecodedInvoice? = null,
+    val invoiceByPaymentRequest: BlinkDecodedInvoice? = null
 )
 
 @Serializable
 data class BlinkDecodedInvoice(
-    val paymentHash: String,
+    val paymentHash: String? = null,
     val amount: Long? = null,
+    val satoshis: Long? = null,
     val memo: String? = null,
     val expiry: Long? = null,
-    val paymentRequest: String? = null
+    val paymentRequest: String? = null,
+    val paymentStatus: String? = null
 )
 
 @Serializable
@@ -158,4 +167,20 @@ data class BlinkAccountDetailsResponse(
 @Serializable
 data class BlinkAccountDetailsData(
     val me: BlinkMe? = null
+)
+
+@Serializable
+data class BlinkInvoiceStatusResponse(
+    val data: BlinkInvoiceStatusData? = null,
+    val errors: List<BlinkError>? = null
+)
+
+@Serializable
+data class BlinkInvoiceStatusData(
+    val lnInvoicePaymentStatus: BlinkInvoiceStatus? = null
+)
+
+@Serializable
+data class BlinkInvoiceStatus(
+    val status: String
 )

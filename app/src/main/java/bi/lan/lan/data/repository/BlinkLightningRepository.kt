@@ -16,7 +16,9 @@ class BlinkLightningRepository(
     private suspend fun getWalletId(): String {
         cachedWalletId?.let { return it }
         val balance = api.getBalance()
-        val wallet = balance.data?.me?.defaultAccount?.wallets?.find { it.walletCurrency == "BTC" }
+        val wallet = balance.data?.me?.defaultAccount?.wallets?.find { 
+            it.walletCurrency == "BTC" || it.currency == "BTC" 
+        }
         val id = wallet?.id ?: throw Exception("BTC wallet not found")
         cachedWalletId = id
         return id
@@ -28,7 +30,9 @@ class BlinkLightningRepository(
 
     override suspend fun getBalance(): NetworkResult<BalanceResponse> = safeCall {
         val blinkBalance = api.getBalance()
-        val wallet = blinkBalance.data?.me?.defaultAccount?.wallets?.find { it.walletCurrency == "BTC" }
+        val wallet = blinkBalance.data?.me?.defaultAccount?.wallets?.find { 
+            it.walletCurrency == "BTC" || it.currency == "BTC" 
+        }
         cachedWalletId = wallet?.id
         val balanceSats = wallet?.balance ?: 0
         BalanceResponse(walletBalance = WalletBalance(totalBalance = balanceSats))
@@ -38,8 +42,12 @@ class BlinkLightningRepository(
         safeCall {
             val walletId = getWalletId()
             val res = api.createInvoice(amount, memo, walletId)
-            val invoice = res.data?.lnInvoiceCreate?.invoice
-            CreateInvoiceResponse(paymentRequest = invoice?.paymentRequest ?: "", rHash = invoice?.paymentHash ?: "")
+            val invoiceNode = res.data?.lnInvoiceCreate ?: res.data?.lnInvoiceCreateOnBehalfOfRecipient
+            val invoice = invoiceNode?.invoice
+            CreateInvoiceResponse(
+                paymentRequest = invoice?.paymentRequest ?: "", 
+                rHash = invoice?.paymentHash ?: ""
+            )
         }
 
     override suspend fun getInvoices(): NetworkResult<List<InvoiceResponse>> = safeCall {
@@ -47,7 +55,7 @@ class BlinkLightningRepository(
         res.data?.me?.defaultAccount?.transactions?.edges?.map { edge ->
             val node = edge.node
             InvoiceResponse(
-                paymentRequest = node.initiationVia.paymentRequest ?: "",
+                paymentRequest = node.initiationVia?.paymentRequest ?: "",
                 rHash = node.id,
                 amount = node.settlementAmount,
                 memo = node.memo ?: "",
@@ -63,12 +71,18 @@ class BlinkLightningRepository(
     override suspend fun payInvoice(paymentRequest: String, amount: Long?): NetworkResult<PaymentResponse> =
         safeCall {
             val walletId = getWalletId()
-            val res = api.payInvoice(paymentRequest, walletId)
-            val status = res.data?.lnInvoicePaymentSend?.status
+            val res = if (amount != null && amount > 0) {
+                api.payNoAmountInvoice(paymentRequest, amount, walletId)
+            } else {
+                api.payInvoice(paymentRequest, walletId)
+            }
+
+            val resultNode = res.data?.lnInvoicePaymentSend ?: res.data?.lnNoAmountInvoicePaymentSend ?: res.data?.lnAddressPaymentSend
+            val status = resultNode?.status
             if (status == "SUCCESS" || status == "PENDING") {
                 PaymentResponse(paymentHash = "blink_payment")
             } else {
-                val errorMsg = res.data?.lnInvoicePaymentSend?.errors?.firstOrNull()?.message 
+                val errorMsg = resultNode?.errors?.firstOrNull()?.message
                     ?: res.errors?.firstOrNull()?.message ?: "Payment failed"
                 throw Exception(errorMsg)
             }
@@ -82,7 +96,7 @@ class BlinkLightningRepository(
                 paymentHash = node.id,
                 value = node.settlementAmount,
                 creationDate = node.createdAt,
-                paymentRequest = node.initiationVia.paymentRequest ?: "",
+                paymentRequest = node.initiationVia?.paymentRequest ?: "",
                 status = node.status
             )
         } ?: emptyList()
@@ -91,14 +105,15 @@ class BlinkLightningRepository(
     override suspend fun decodeInvoice(paymentRequest: String): NetworkResult<DecodeInvoiceResponse> =
         safeCall {
             val res = api.decodeInvoice(paymentRequest)
-            val decoded = res.data?.lnInvoiceDecode ?: throw Exception("Failed to decode invoice: ${res.errors?.firstOrNull()?.message ?: "Unknown error"}")
+            val decoded = res.data?.lnInvoiceDecode ?: res.data?.invoiceByPaymentRequest
+                ?: throw Exception("Failed to decode invoice")
             
             DecodeInvoiceResponse(
-                paymentHash = decoded.paymentHash,
-                numSatoshis = decoded.amount ?: 0,
+                paymentHash = decoded.paymentHash ?: "",
+                numSatoshis = decoded.satoshis ?: decoded.amount ?: 0,
                 description = decoded.memo ?: "",
                 expiry = decoded.expiry ?: 0,
-                destination = "Blink Network" // Galoy doesn't always expose destination pubkey in this query
+                destination = "Blink Network"
             )
         }
 

@@ -15,53 +15,41 @@ class BlinkApiService(private val client: HttpClient) {
     private val accessToken = AppConfig.BLINK_ACCESS_TOKEN
 
     suspend fun getBalance(): BlinkBalanceResponse {
-        val response = client.post(apiUrl) {
-            header("X-API-KEY", accessToken)
-            contentType(ContentType.Application.Json)
-            setBody(GraphQLRequest(query = "query { me { defaultAccount { wallets { id balance walletCurrency } } } }"))
-        }
-        if (response.status != HttpStatusCode.OK) {
-            throw Exception("Blink API error: ${response.status.value} ${response.status.description}")
-        }
-        return response.body()
+        val query = "query { me { defaultAccount { wallets { id balance walletCurrency } } } }"
+        return executeQuery(query)
     }
 
     suspend fun createInvoice(amount: Long, memo: String, walletId: String): BlinkInvoiceResponse {
         val query = """
-            mutation lnInvoiceCreate(${'$'}input: LnInvoiceCreateInput!) {
-              lnInvoiceCreate(input: ${'$'}input) {
-                errors { message }
-                invoice { paymentRequest paymentHash }
-              }
+            mutation Mutation(${'$'}input: LnInvoiceCreateOnBehalfOfRecipientInput!) {
+                lnInvoiceCreateOnBehalfOfRecipient(input: ${'$'}input) {
+                    invoice {
+                        paymentRequest
+                        satoshis
+                    }
+                }
             }
         """.trimIndent()
 
         val variables = buildJsonObject {
             put("input", buildJsonObject {
-                put("amount", amount)
+                put("recipientWalletId", walletId)
+                put("amount", amount.toString())
                 put("memo", memo)
-                put("walletId", walletId)
+                put("expiresIn", 15)
             })
         }
 
-        val response = client.post(apiUrl) {
-            header("X-API-KEY", accessToken)
-            contentType(ContentType.Application.Json)
-            setBody(GraphQLRequest(query = query, variables = variables))
-        }
-        if (response.status != HttpStatusCode.OK) {
-            throw Exception("Blink API error: ${response.status.value} ${response.status.description}")
-        }
-        return response.body()
+        return executeQuery(query, variables)
     }
 
     suspend fun payInvoice(paymentRequest: String, walletId: String): BlinkPaymentResponse {
         val query = """
-            mutation lnInvoicePaymentSend(${'$'}input: LnInvoicePaymentSendInput!) {
-              lnInvoicePaymentSend(input: ${'$'}input) {
-                status
-                errors { message }
-              }
+            mutation Mutation(${'$'}input: LnInvoicePaymentInput!) {
+                lnInvoicePaymentSend(input: ${'$'}input) {
+                    status
+                    errors { message }
+                }
             }
         """.trimIndent()
 
@@ -72,50 +60,39 @@ class BlinkApiService(private val client: HttpClient) {
             })
         }
 
-        val response = client.post(apiUrl) {
-            header("X-API-KEY", accessToken)
-            contentType(ContentType.Application.Json)
-            setBody(GraphQLRequest(query = query, variables = variables))
+        return executeQuery(query, variables)
+    }
+
+    suspend fun payNoAmountInvoice(paymentRequest: String, amount: Long, walletId: String): BlinkPaymentResponse {
+        val query = """
+            mutation Mutation(${'$'}input: LnNoAmountInvoicePaymentInput!) {
+                lnNoAmountInvoicePaymentSend(input: ${'$'}input) {
+                    status
+                    errors { message }
+                }
+            }
+        """.trimIndent()
+
+        val variables = buildJsonObject {
+            put("input", buildJsonObject {
+                put("paymentRequest", paymentRequest)
+                put("amount", amount)
+                put("walletId", walletId)
+            })
         }
-        if (response.status != HttpStatusCode.OK) {
-            throw Exception("Blink API error: ${response.status.value} ${response.status.description}")
-        }
-        return response.body()
+
+        return executeQuery(query, variables)
     }
 
     suspend fun getTransactions(limit: Int = 20): BlinkTransactionsResponse {
         val query = """
-            query getTransactions(${'$'}first: Int) {
+            query GetTransactions(${'$'}first: Int) {
               me {
                 defaultAccount {
                   transactions(first: ${'$'}first) {
                     edges {
                       node {
                         id
-                        initiationVia {
-                          ... on InitiationViaLn {
-                            paymentRequest
-                            type
-                          }
-                          ... on InitiationViaIntraLedger {
-                            type
-                          }
-                          ... on InitiationViaOnChain {
-                            type
-                          }
-                        }
-                        settlementVia {
-                          ... on SettlementViaLn {
-                            type
-                          }
-                          ... on SettlementViaIntraLedger {
-                            counterpartyWalletId
-                            type
-                          }
-                          ... on SettlementViaOnChain {
-                            type
-                          }
-                        }
                         settlementAmount
                         settlementCurrency
                         settlementDisplayAmount
@@ -124,6 +101,12 @@ class BlinkApiService(private val client: HttpClient) {
                         status
                         memo
                         createdAt
+                        initiationVia {
+                          __typename
+                        }
+                        settlementVia {
+                          __typename
+                        }
                       }
                     }
                   }
@@ -136,56 +119,63 @@ class BlinkApiService(private val client: HttpClient) {
             put("first", limit)
         }
 
-        val response = client.post(apiUrl) {
-            header("X-API-KEY", accessToken)
-            contentType(ContentType.Application.Json)
-            setBody(GraphQLRequest(query = query, variables = variables))
-        }
-        if (response.status != HttpStatusCode.OK) {
-            throw Exception("Blink API error: ${response.status.value} ${response.status.description}")
-        }
-        return response.body()
+        return executeQuery(query, variables)
     }
 
     suspend fun decodeInvoice(paymentRequest: String): BlinkDecodeInvoiceResponse {
         val query = """
-            query lnInvoiceDecode(${'$'}input: LnInvoiceDecodeInput!) {
-              lnInvoiceDecode(input: ${'$'}input) {
-                paymentHash
-                amount
-                memo
-                expiry
-              }
+            query GetInvoiceAmount(${'$'}paymentRequest: LnPaymentRequest!) {
+                invoiceByPaymentRequest(paymentRequest: ${'$'}paymentRequest) {
+                    paymentRequest
+                    satoshis
+                }
             }
         """.trimIndent()
 
         val variables = buildJsonObject {
-            put("input", buildJsonObject {
-                put("paymentRequest", paymentRequest)
-            })
+            put("paymentRequest", paymentRequest)
         }
 
         return executeQuery(query, variables)
     }
 
     private suspend inline fun <reified T> executeQuery(query: String, variables: JsonObject? = null): T {
+        val requestBody = GraphQLRequest(query = query, variables = variables)
+        println("BLINK REQUEST: $requestBody")
+        
         val response = client.post(apiUrl) {
             header("X-API-KEY", accessToken)
-            // Some Blink environments use Authorization header instead
-            header("Authorization", "Bearer $accessToken")
             contentType(ContentType.Application.Json)
-            setBody(GraphQLRequest(query = query, variables = variables))
+            setBody(requestBody)
         }
+        
+        val responseBody = response.body<String>()
+        println("BLINK RESPONSE: $responseBody")
+
         if (response.status != HttpStatusCode.OK) {
-            val errorBody = response.body<String>()
-            throw Exception("Blink API error: ${response.status.value} - $errorBody")
+            throw Exception("Blink API HTTP error ${response.status.value}: $responseBody")
         }
-        return response.body()
+        
+        val result = json.decodeFromString<JsonObject>(responseBody)
+        if (result.containsKey("errors")) {
+            val errors = result["errors"]?.jsonArray
+            if (errors != null && errors.isNotEmpty()) {
+                val firstError = errors[0].jsonObject["message"]?.jsonPrimitive?.content ?: "Unknown GraphQL error"
+                throw Exception("Blink GraphQL error: $firstError")
+            }
+        }
+
+        return json.decodeFromString(responseBody)
+    }
+    
+    private val json = Json { 
+        ignoreUnknownKeys = true
+        isLenient = true
     }
 
     suspend fun getAccountDetails(): BlinkAccountDetailsResponse {
         val query = """
-            query getAccountDetails {
+            query GetAccountDetails {
               me {
                 id
                 username
@@ -201,14 +191,24 @@ class BlinkApiService(private val client: HttpClient) {
             }
         """.trimIndent()
 
-        val response = client.post(apiUrl) {
-            header("X-API-KEY", accessToken)
-            contentType(ContentType.Application.Json)
-            setBody(GraphQLRequest(query = query))
+        return executeQuery(query)
+    }
+
+    suspend fun checkInvoiceStatus(paymentRequest: String): BlinkInvoiceStatusResponse {
+        val query = """
+            query CheckInvoiceStatus(${'$'}input: LnInvoicePaymentStatusInput!) {
+                lnInvoicePaymentStatus(input: ${'$'}input) {
+                    status
+                }
+            }
+        """.trimIndent()
+
+        val variables = buildJsonObject {
+            put("input", buildJsonObject {
+                put("paymentRequest", paymentRequest)
+            })
         }
-        if (response.status != HttpStatusCode.OK) {
-            throw Exception("Blink API error: ${response.status.value} ${response.status.description}")
-        }
-        return response.body()
+
+        return executeQuery(query, variables)
     }
 }

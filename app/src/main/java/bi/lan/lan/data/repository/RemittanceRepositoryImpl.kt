@@ -100,37 +100,30 @@ class RemittanceRepositoryImpl(
                 val remittance = dao.getRemittanceByReference(reference) ?: throw Exception("Remittance not found")
                 if (remittance.status == "PAID") return@withContext NetworkResult.Success(remittance)
 
-                // Check Blink transactions to see if it's paid
-                val transactions = api.getTransactions(100)
-                val tx = transactions.data?.me?.defaultAccount?.transactions?.edges?.find {
-                    it.node.memo?.contains(reference) == true
-                }
+                // First check by status query (efficient)
+                val statusRes = api.checkInvoiceStatus(remittance.invoice)
+                val blinkStatus = statusRes.data?.lnInvoicePaymentStatus?.status
 
-                if (tx != null) {
-                    val blinkStatus = tx.node.status
-                    val newStatus = when (blinkStatus.uppercase()) {
-                        "SUCCESS" -> "PAID"
-                        "FAILURE" -> "FAILED"
-                        "PENDING" -> "PENDING"
-                        else -> remittance.status
+                if (blinkStatus == "PAID") {
+                    // Fetch full details to get transactionId and timestamp
+                    val transactions = api.getTransactions(100)
+                    val tx = transactions.data?.me?.defaultAccount?.transactions?.edges?.find {
+                        it.node.memo?.contains(reference) == true
                     }
                     
                     val updatedRemittance = remittance.copy(
-                        status = newStatus,
-                        paidAt = if (newStatus == "PAID") tx.node.createdAt * 1000 else remittance.paidAt,
-                        transactionId = tx.node.id
+                        status = "PAID",
+                        paidAt = (tx?.node?.createdAt ?: (System.currentTimeMillis() / 1000)) * 1000,
+                        transactionId = tx?.node?.id ?: remittance.transactionId
                     )
                     dao.updateRemittance(updatedRemittance)
                     NetworkResult.Success(updatedRemittance)
+                } else if (blinkStatus == "EXPIRED") {
+                    val updated = remittance.copy(status = "EXPIRED")
+                    dao.updateRemittance(updated)
+                    NetworkResult.Success(updated)
                 } else {
-                    // Check if expired based on creation time (fallback)
-                    if (System.currentTimeMillis() - remittance.createdAt > 3600 * 1000) {
-                         val updated = remittance.copy(status = "EXPIRED")
-                         dao.updateRemittance(updated)
-                         NetworkResult.Success(updated)
-                    } else {
-                        NetworkResult.Success(remittance)
-                    }
+                    NetworkResult.Success(remittance)
                 }
             } catch (e: Exception) {
                 NetworkResult.Error(message = e.message ?: "Error checking status")
