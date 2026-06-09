@@ -665,7 +665,7 @@ fun LightningLogo(size: Int = 56, backgroundColor: Color = PrimaryGreen, logoCol
         contentAlignment = Alignment.Center
     ) {
         Image(
-            painter = painterResource(id = R.drawable.logo),
+            painter = painterResource(id = R.drawable.logo1),
             contentDescription = "LAN Logo",
             modifier = Modifier.size((size * 0.6).dp),
             colorFilter = logoColor?.let { ColorFilter.tint(it) }

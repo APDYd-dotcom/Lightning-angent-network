@@ -78,7 +78,7 @@ fun SplashScreen(onNext: () -> Unit) {
                     scaleY = scaleAnim
                 )
         ) {
-            LightningLogo(size = 100, backgroundColor = SurfaceWhite)
+            LightningLogo(size = 80, backgroundColor = SurfaceWhite)
             
             Spacer(Modifier.height(24.dp))
             
