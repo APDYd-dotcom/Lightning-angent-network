@@ -25,7 +25,6 @@ class BlinkApiService(private val client: HttpClient) {
                 lnInvoiceCreateOnBehalfOfRecipient(input: ${'$'}input) {
                     invoice {
                         paymentRequest
-                        paymentHash
                         satoshis
                     }
                     errors { message }
@@ -103,9 +102,6 @@ class BlinkApiService(private val client: HttpClient) {
                         }
                         settlementVia {
                           __typename
-                          ... on SettlementViaIntraLedger {
-                            counterpartyWalletId
-                          }
                         }
                         settlementAmount
                         settlementCurrency
@@ -132,20 +128,17 @@ class BlinkApiService(private val client: HttpClient) {
 
     suspend fun decodeInvoice(paymentRequest: String): BlinkDecodeInvoiceResponse {
         val query = """
-            query lnInvoiceDecode(${'$'}input: LnInvoiceDecodeInput!) {
-                lnInvoiceDecode(input: ${'$'}input) {
-                    paymentHash
+            query GetInvoiceAmount(${'$'}paymentRequest: LnPaymentRequest!) {
+                invoiceByPaymentRequest(paymentRequest: ${'$'}paymentRequest) {
+                    paymentRequest
                     satoshis
-                    memo
-                    expiry
+                    paymentStatus
                 }
             }
         """.trimIndent()
 
         val variables = buildJsonObject {
-            put("input", buildJsonObject {
-                put("paymentRequest", paymentRequest)
-            })
+            put("paymentRequest", paymentRequest)
         }
 
         return executeQuery(query, variables)
@@ -153,28 +146,46 @@ class BlinkApiService(private val client: HttpClient) {
 
     private suspend inline fun <reified T> executeQuery(query: String, variables: JsonObject? = null): T {
         val requestBody = GraphQLRequest(query = query, variables = variables)
-        println("BLINK REQUEST: $requestBody")
         
-        val response = client.post(apiUrl) {
-            header("X-API-KEY", accessToken)
-            contentType(ContentType.Application.Json)
-            setBody(requestBody)
+        // Comprehensive Logging
+        println("---- BLINK GRAPHQL REQUEST ----")
+        println("QUERY: $query")
+        println("VARIABLES: $variables")
+        
+        val response = try {
+            client.post(apiUrl) {
+                header("X-API-KEY", accessToken)
+                contentType(ContentType.Application.Json)
+                setBody(requestBody)
+            }
+        } catch (e: Exception) {
+            println("NETWORK ERROR: ${e.message}")
+            throw Exception("Network error: ${e.message}")
         }
         
         val responseBody = response.body<String>()
-        println("BLINK RESPONSE: $responseBody")
+        println("---- BLINK GRAPHQL RESPONSE ----")
+        println("STATUS: ${response.status}")
+        println("BODY: $responseBody")
+
+        // Try to parse GraphQL errors regardless of HTTP status code
+        try {
+            val result = json.decodeFromString<JsonObject>(responseBody)
+            if (result.containsKey("errors")) {
+                val errors = result["errors"]?.jsonArray
+                if (errors != null && errors.isNotEmpty()) {
+                    val firstError = errors[0].jsonObject["message"]?.jsonPrimitive?.content ?: "Unknown GraphQL error"
+                    println("GRAPHQL ERROR: $firstError")
+                    throw Exception("Blink error: $firstError")
+                }
+            }
+        } catch (e: Exception) {
+            if (e.message?.contains("Blink error:") == true) throw e
+            // Ignore other parsing errors and proceed to check status code
+        }
 
         if (response.status != HttpStatusCode.OK) {
-            throw Exception("Blink API HTTP error ${response.status.value}: $responseBody")
-        }
-        
-        val result = json.decodeFromString<JsonObject>(responseBody)
-        if (result.containsKey("errors")) {
-            val errors = result["errors"]?.jsonArray
-            if (errors != null && errors.isNotEmpty()) {
-                val firstError = errors[0].jsonObject["message"]?.jsonPrimitive?.content ?: "Unknown GraphQL error"
-                throw Exception("Blink GraphQL error: $firstError")
-            }
+            throw Exception("Blink API connection error (${response.status.value})")
         }
 
         return json.decodeFromString(responseBody)

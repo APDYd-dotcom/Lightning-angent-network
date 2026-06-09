@@ -76,8 +76,7 @@ data class BlinkInitiationVia(
 
 @Serializable
 data class BlinkSettlementVia(
-    @kotlinx.serialization.SerialName("__typename") val type: String? = null,
-    val counterpartyWalletId: String? = null
+    @kotlinx.serialization.SerialName("__typename") val type: String? = null
 )
 
 @Serializable
@@ -149,14 +148,9 @@ data class BlinkDecodeInvoiceData(
 
 @Serializable
 data class BlinkDecodedInvoice(
-    val paymentHash: String? = null,
-    val amount: Long? = null,
-    val satoshis: Long? = null,
-    val memo: String? = null,
-    val expiry: Long? = null,
     val paymentRequest: String? = null,
-    val paymentStatus: String? = null,
-    val status: String? = null
+    val satoshis: Long? = null,
+    val paymentStatus: String? = null
 )
 
 @Serializable
