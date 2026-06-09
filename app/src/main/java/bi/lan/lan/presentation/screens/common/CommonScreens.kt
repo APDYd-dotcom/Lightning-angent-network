@@ -86,27 +86,57 @@ fun SplashScreen(onNext: () -> Unit) {
                 )
         ) {
             // Reusing logo1 with a "pro" look, ensuring it fills nicely without being cut
-            Surface(
-                modifier = Modifier
-                    .size(160.dp)
-                    .clip(CircleShape),
-                color = SurfaceWhite.copy(alpha = 0.05f),
-                border = androidx.compose.foundation.BorderStroke(1.dp, PrimaryGreen.copy(alpha = 0.3f))
-            ) {
-                Image(
-                    painter = painterResource(id = R.drawable.logo1),
-                    contentDescription = "App Logo",
+            Box(contentAlignment = Alignment.Center) {
+                Surface(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .padding(24.dp), // Safe padding to ensure it fits the circle "pro" look
-                    contentScale = ContentScale.Fit
+                        .size(160.dp)
+                        .clip(CircleShape),
+                    color = SurfaceWhite.copy(alpha = 0.05f),
+                    border = androidx.compose.foundation.BorderStroke(
+                        1.dp,
+                        PrimaryGreen.copy(alpha = 0.3f)
+                    )
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.logo1),
+                        contentDescription = "App Logo",
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(24.dp), // Safe padding to ensure it fits the circle "pro" look
+                        contentScale = ContentScale.Fit
+                    )
+                }
+
+                val infiniteTransition = rememberInfiniteTransition(label = "lightning")
+                val lightningAlpha by infiniteTransition.animateFloat(
+                    initialValue = 0f,
+                    targetValue = 1f,
+                    animationSpec = infiniteRepeatable(
+                        animation = keyframes {
+                            durationMillis = 1000
+                            0.0f at 0
+                            1.0f at 500
+                            0.0f at 1000
+                        },
+                        repeatMode = RepeatMode.Restart
+                    ),
+                    label = "lightningAlpha"
+                )
+
+                Text(
+                    text = "⚡",
+                    fontSize = 40.sp,
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(top = 10.dp, end = 10.dp)
+                        .graphicsLayer(alpha = lightningAlpha)
                 )
             }
             
             Spacer(Modifier.height(32.dp))
             
             Text(
-                text = stringResource(id = R.string.app_name).uppercase(),
+                text = "${stringResource(id = R.string.app_name)} ⚡",
                 style = MaterialTheme.typography.displaySmall,
                 color = SurfaceWhite,
                 fontWeight = FontWeight.Black,
@@ -114,11 +144,13 @@ fun SplashScreen(onNext: () -> Unit) {
             )
             
             Text(
-                text = "LIGHTNING AGENT NETWORK",
+                text = "CONNECTING PEOPLE THROUGH LIGHTNING",
                 style = MaterialTheme.typography.labelLarge,
                 color = PrimaryGreen,
-                letterSpacing = 3.sp,
-                fontWeight = FontWeight.ExtraBold
+                letterSpacing = 1.sp,
+                fontWeight = FontWeight.ExtraBold,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 24.dp)
             )
         }
 
@@ -140,7 +172,7 @@ fun SplashScreen(onNext: () -> Unit) {
             )
             Spacer(Modifier.height(32.dp))
             Text(
-                text = "SECURE • FAST • BORDERLESS",
+                text = "FAST • SECURE • BORDERLESS",
                 style = MaterialTheme.typography.labelSmall,
                 color = SurfaceWhite.copy(alpha = 0.4f),
                 letterSpacing = 2.sp,
@@ -204,7 +236,7 @@ fun RoleSelectionScreen(onCustomer: () -> Unit, onAgent: () -> Unit) {
             Spacer(Modifier.height(12.dp))
             
             Text(
-                "Seamless Bitcoin Lightning payments for customers and agents.",
+                "Connecting People Through Lightning",
                 style = MaterialTheme.typography.bodyLarge,
                 color = TextSecondaryDark,
                 textAlign = TextAlign.Center

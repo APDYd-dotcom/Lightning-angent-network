@@ -572,6 +572,22 @@ fun ReceiptCard(
             ReceiptInfoRow("Transaction ID", if (transactionId.length > 12) transactionId.take(12) + "..." else transactionId)
             
             Spacer(Modifier.height(32.dp))
+
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = "Powered by LightLink ⚡",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = PrimaryGreen,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "Connecting People Through Lightning",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = TextSecondaryDark.copy(alpha = 0.7f)
+                )
+            }
+
+            Spacer(Modifier.height(24.dp))
             
             GradientButton(
                 text = "Share Receipt",
@@ -666,7 +682,7 @@ fun LightningLogo(size: Int = 56, backgroundColor: Color = PrimaryGreen, logoCol
     ) {
         Image(
             painter = painterResource(id = R.drawable.logo1),
-            contentDescription = "LAN Logo",
+            contentDescription = "LightLink Logo",
             modifier = Modifier.size((size * 0.6).dp),
             colorFilter = logoColor?.let { ColorFilter.tint(it) }
         )

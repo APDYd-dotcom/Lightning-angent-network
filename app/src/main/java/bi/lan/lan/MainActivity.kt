@@ -29,27 +29,56 @@ class MainActivity : ComponentActivity() {
             val root = splashScreenView.view
             val icon = splashScreenView.iconView
 
-            // Create App Name TextView programmatically to use strings.xml
-            val appNameView = TextView(this).apply {
-                text = getString(R.string.app_name).uppercase()
-                setTextColor(ContextCompat.getColor(this@MainActivity, R.color.white))
-                textSize = 32f
-                typeface = Typeface.create("sans-serif-black", Typeface.BOLD)
+            // Create App Name and Tagline Layout programmatically
+            val splashContent = android.widget.LinearLayout(this).apply {
+                orientation = android.widget.LinearLayout.VERTICAL
                 gravity = Gravity.CENTER
                 alpha = 0f
                 translationY = 150f
-                letterSpacing = 0.2f
             }
+
+            val appNameView = TextView(this).apply {
+                text = "${getString(R.string.app_name)} ⚡"
+                setTextColor(ContextCompat.getColor(this@MainActivity, R.color.white))
+                textSize = 36f
+                typeface = Typeface.create("sans-serif-black", Typeface.BOLD)
+                gravity = Gravity.CENTER
+                letterSpacing = 0.1f
+            }
+
+            val taglineView = TextView(this).apply {
+                text = "Connecting People Through Lightning"
+                setTextColor(ContextCompat.getColor(this@MainActivity, R.color.white))
+                textSize = 14f
+                typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+                gravity = Gravity.CENTER
+                alpha = 0.8f
+                setPadding(0, 10, 0, 40)
+            }
+
+            val featuresView = TextView(this).apply {
+                text = "Fast • Secure • Borderless"
+                setTextColor(ContextCompat.getColor(this@MainActivity, R.color.white))
+                textSize = 12f
+                typeface = Typeface.create("sans-serif-light", Typeface.NORMAL)
+                gravity = Gravity.CENTER
+                alpha = 0.5f
+                letterSpacing = 0.3f
+            }
+
+            splashContent.addView(appNameView)
+            splashContent.addView(taglineView)
+            splashContent.addView(featuresView)
 
             if (root is FrameLayout) {
                 val params = FrameLayout.LayoutParams(
-                    FrameLayout.LayoutParams.WRAP_CONTENT,
+                    FrameLayout.LayoutParams.MATCH_PARENT,
                     FrameLayout.LayoutParams.WRAP_CONTENT
                 ).apply {
                     gravity = Gravity.CENTER
-                    topMargin = 300 // Positioned nicely below the center icon
+                    topMargin = 400
                 }
-                root.addView(appNameView, params)
+                root.addView(splashContent, params)
             }
 
             // Animation sequence: 
@@ -65,12 +94,12 @@ class MainActivity : ComponentActivity() {
                 interpolator = AnticipateInterpolator()
             }
 
-            val textAlpha = ObjectAnimator.ofFloat(appNameView, View.ALPHA, 0f, 1f, 0f).apply {
-                duration = 800L
+            val textAlpha = ObjectAnimator.ofFloat(splashContent, View.ALPHA, 0f, 1f, 1f, 0f).apply {
+                duration = 1500L
             }
             
-            val textTranslationY = ObjectAnimator.ofFloat(appNameView, View.TRANSLATION_Y, 150f, 50f).apply {
-                duration = 800L
+            val textTranslationY = ObjectAnimator.ofFloat(splashContent, View.TRANSLATION_Y, 150f, 0f).apply {
+                duration = 1000L
                 interpolator = OvershootInterpolator()
             }
 

@@ -26,7 +26,9 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import bi.lan.lan.data.local.RemittanceEntity
 import bi.lan.lan.data.model.InvoiceResponse
 import bi.lan.lan.presentation.components.*
@@ -90,7 +92,7 @@ fun AgentHomeScreen(
                                 color = TextPrimaryDark
                             )
                             Text(
-                                text = "Welcome back to LAN",
+                                text = "Welcome back to LightLink",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = TextSecondaryDark
                             )
@@ -553,11 +555,32 @@ fun ProfileScreen(
                 )
                 
                 Text(
-                    text = "Lightning Agent Network",
+                    text = "LightLink Account",
                     style = MaterialTheme.typography.bodyMedium,
                     color = PrimaryGreen,
                     fontWeight = FontWeight.Bold
                 )
+                
+                Text(
+                    text = "Connecting People Through Lightning",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = TextSecondaryDark.copy(alpha = 0.7f),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 32.dp)
+                )
+
+                Spacer(Modifier.height(32.dp))
+
+                SectionHeader("About LightLink")
+                Spacer(Modifier.height(8.dp))
+                GlassCard {
+                    Text(
+                        text = "LightLink is a Lightning-powered remittance platform designed to make cross-border payments simple, fast, and accessible.\n\nUsers can generate payment requests, share Lightning invoices, receive payments instantly, and track transaction history in real time.\n\nConnecting People Through Lightning.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextSecondaryDark,
+                        lineHeight = 18.sp
+                    )
+                }
                 
                 Spacer(Modifier.height(32.dp))
                 

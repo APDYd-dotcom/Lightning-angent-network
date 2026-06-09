@@ -39,11 +39,11 @@ object ReceiptGenerator {
         paint.textSize = 48f
         paint.isFakeBoldText = true
         paint.textAlign = Paint.Align.CENTER
-        canvas.drawText("LAN", width / 2f, 100f, paint)
+        canvas.drawText("LightLink ⚡", width / 2f, 100f, paint)
         
         paint.textSize = 20f
         paint.isFakeBoldText = false
-        canvas.drawText("Lightning Agent Network", width / 2f, 140f, paint)
+        canvas.drawText("Connecting People Through Lightning", width / 2f, 140f, paint)
 
         // Body
         paint.textAlign = Paint.Align.LEFT
@@ -110,11 +110,14 @@ object ReceiptGenerator {
         canvas.drawText(txId.take(12) + "...", width - margin - 250f, y, paint)
 
         // Footer
-        y = height - 60f
+        y = height - 80f
         paint.textAlign = Paint.Align.CENTER
-        paint.textSize = 18f
+        paint.textSize = 20f
         paint.color = 0xFF475569.toInt()
-        canvas.drawText("Secure • Instant • Borderless", width / 2f, y, paint)
+        canvas.drawText("Powered by LightLink ⚡", width / 2f, y, paint)
+        y += 30f
+        paint.textSize = 16f
+        canvas.drawText("Connecting People Through Lightning", width / 2f, y, paint)
 
         // Save to file
         return try {

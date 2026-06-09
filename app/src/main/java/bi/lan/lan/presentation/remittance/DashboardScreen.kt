@@ -81,13 +81,13 @@ fun DashboardScreen(
                     ) {
                         Column {
                             Text(
-                                text = "Hello, Agent",
+                                text = "Welcome to LightLink",
                                 style = MaterialTheme.typography.headlineMedium,
                                 fontWeight = FontWeight.Black,
                                 color = TextPrimaryDark
                             )
                             Text(
-                                text = "Burundi Remittance Network",
+                                text = "Connecting People Through Lightning",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = TextSecondaryDark
                             )

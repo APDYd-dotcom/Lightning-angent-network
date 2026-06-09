@@ -254,14 +254,23 @@ private fun shareRemittance(context: android.content.Context, remittance: Remitt
     val qrUri = bi.lan.lan.core.utils.QrGenerator.generateQrUri(context, remittance.invoice, remittance.reference)
     
     val message = """
-        ⚡ LAN - Lightning Agent Network
+        ⚡ LightLink
         
-        Please send me ${remittance.amount} sats.
+        Connecting People Through Lightning
         
-        Reference: ${remittance.reference}
+        Please send:
+        ${remittance.amount} sats
+        
+        Reference:
+        ${remittance.reference}
+        
+        Description:
+        ${remittance.description.ifEmpty { "Remittance Request" }}
         
         Lightning Invoice:
         ${remittance.invoice}
+        
+        Thank you.
     """.trimIndent()
 
     val sendIntent = Intent().apply {
@@ -304,7 +313,9 @@ private fun shareReceipt(context: android.content.Context, remittance: Remittanc
     )
 
     val message = """
-        ✅ Payment received successfully.
+        ✅ Payment Received
+        
+        Powered by LightLink ⚡
         
         Amount:
         ${remittance.amount} sats
@@ -316,9 +327,9 @@ private fun shareReceipt(context: android.content.Context, remittance: Remittanc
         ${remittance.transactionId}
         
         Status:
-        SUCCESS
+        ${remittance.status.uppercase()}
         
-        Powered by LAN ⚡
+        Connecting People Through Lightning
     """.trimIndent()
 
     if (uri != null) {
