@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import bi.lan.lan.data.model.*
 import bi.lan.lan.data.remote.NetworkResult
 import bi.lan.lan.domain.repository.LightningRepository
+import bi.lan.lan.domain.repository.RemittanceRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -162,13 +163,18 @@ class AgentWithdrawalViewModel(
     }
 }
 
-class AgentTransactionsViewModel(private val repo: LightningRepository) : ViewModel() {
+class AgentTransactionsViewModel(
+    private val repo: LightningRepository,
+    private val remittanceRepo: RemittanceRepository
+) : ViewModel() {
     private val _invoices = MutableStateFlow<List<InvoiceResponse>>(emptyList())
     val invoices: StateFlow<List<InvoiceResponse>> = _invoices
     private val _payments = MutableStateFlow<List<PaymentHistoryItem>>(emptyList())
     val payments: StateFlow<List<PaymentHistoryItem>> = _payments
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
+
+    val remittances = remittanceRepo.getRemittances()
 
     private val _actionLoading = MutableStateFlow(false)
     val actionLoading: StateFlow<Boolean> = _actionLoading

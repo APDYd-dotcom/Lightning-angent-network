@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import bi.lan.lan.data.local.RemittanceEntity
 import bi.lan.lan.data.model.InvoiceResponse
 import bi.lan.lan.presentation.components.*
 import bi.lan.lan.presentation.screens.customer.NodeInfoViewModel
@@ -374,6 +375,7 @@ fun AgentTransactionsScreen(
 ) {
     val invoices by vm.invoices.collectAsState()
     val payments by vm.payments.collectAsState()
+    val remittances by vm.remittances.collectAsState(initial = emptyList<RemittanceEntity>())
     val isLoading by vm.isLoading.collectAsState()
     var tab by remember { mutableIntStateOf(0) }
     
@@ -424,6 +426,13 @@ fun AgentTransactionsScreen(
                     selectedContentColor = PrimaryGreen,
                     unselectedContentColor = TextSecondaryDark
                 )
+                Tab(
+                    selected = tab == 2,
+                    onClick = { tab = 2 },
+                    text = { Text("Remittances") },
+                    selectedContentColor = PrimaryGreen,
+                    unselectedContentColor = TextSecondaryDark
+                )
             }
 
             PullToRefreshBox(
@@ -445,7 +454,7 @@ fun AgentTransactionsScreen(
                                 onClick = { onInvoiceDetail(invoice.rHash) }
                             )
                         }
-                    } else {
+                    } else if (tab == 1) {
                         items(payments) { payment ->
                             TransactionRow(
                                 title = "Sent Payment",
@@ -453,6 +462,16 @@ fun AgentTransactionsScreen(
                                 amount = "${payment.value} sats",
                                 status = payment.status,
                                 onClick = { onPaymentDetail(payment.paymentHash) }
+                            )
+                        }
+                    } else {
+                        items(remittances) { remittance ->
+                            TransactionRow(
+                                title = remittance.description.ifEmpty { if (remittance.type == "INBOUND") "Remittance Received" else "Remittance Sent" },
+                                subtitle = "Ref: ${remittance.reference}",
+                                amount = "${remittance.amount} sats",
+                                status = remittance.status,
+                                onClick = { /* Navigate to detail if needed */ }
                             )
                         }
                     }

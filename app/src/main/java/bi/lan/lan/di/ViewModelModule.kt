@@ -25,7 +25,7 @@ val viewModelModule = module {
     viewModel { AgentHomeViewModel(get(named("agent"))) }
     viewModel { AgentDepositViewModel(get(named("agent"))) }
     viewModel { AgentWithdrawalViewModel(get(named("agent")), get(named("customer"))) }
-    viewModel { AgentTransactionsViewModel(get(named("agent"))) }
+    viewModel { AgentTransactionsViewModel(get(named("agent")), get()) }
     viewModel(named("agent")) { NodeInfoViewModel(get(named("agent")), get()) }
 
     // Remittance ViewModels
